@@ -3,9 +3,8 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "start": "nx serve",
-    "build": "nx build",
-    "test": "nx test"
+    "build": "nx build node-swiftclient",
+    "e2e": "nx run e2e:e2e"
   },
   "private": true,
   "dependencies": {

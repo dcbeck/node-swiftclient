@@ -1,0 +1,1 @@
+docker exec -it swift-keystone /swift/bin/register-swift-endpoint.sh http://127.0.0.1:6001/
