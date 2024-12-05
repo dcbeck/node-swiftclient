@@ -58,24 +58,23 @@ export async function waitUntilTestContainerIsRunning() {
 }
 
 export function getAssetsFolder() {
-  return path.join(__dirname,  '../../assets');
+  return path.join(__dirname, '../../assets');
 }
 
 export function getTestFile(fileName: string) {
   const assetFolder = getAssetsFolder();
   return {
     fileName,
-    filePath: path.join(assetFolder, 'dummy.pdf')
-  }
+    filePath: path.join(assetFolder, 'dummy.pdf'),
+  };
 }
 
 export function getTestFiles() {
- 
   return {
     pdfFile: getTestFile('dummy.pdf'),
     txtFile: getTestFile('test.txt'),
     m3dFile: getTestFile('teapot.m3d'),
     jpgFile: getTestFile('test.jpg'),
     pngFile: getTestFile('test.png'),
-  }
+  };
 }

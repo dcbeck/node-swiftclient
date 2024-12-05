@@ -14,14 +14,14 @@
   "tags": [],
   "targets": {
     "build": {
-      "executor": "@nx/js:tsc",
-      "outputs": ["{options.outputPath}"],
+      "executor": "@nx/rollup:rollup",
       "options": {
+        "format": ["esm", "cjs"],
+        "generateExportsField": true,
         "outputPath": "dist/node-swiftclient",
         "tsConfig": "node-swiftclient/tsconfig.lib.json",
         "packageJson": "node-swiftclient/package.json",
-        "main": "node-swiftclient/src/index.ts",
-        "assets": ["node-swiftclient/*.md"]
+        "main": "node-swiftclient/src/index.ts"
       }
     },
     "nx-release-publish": {

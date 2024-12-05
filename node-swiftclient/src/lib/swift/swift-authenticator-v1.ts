@@ -1,76 +1,68 @@
-import { AuthResult } from '../interfaces/auth-result';
-import { Authenticator } from '../interfaces/authenticator';
+import { Authenticator } from '../interfaces';
 
-// Constants for authentication status
-enum AUTH_STATUS {
-  UNAUTHENTICATED = 0,
-  AUTHENTICATED = 1,
-  FAILED = 2,
-}
+const AUTH_STATUS = {
+  UNAUTHENTICATED: 0,
+  AUTHENTICATED: 1,
+  FAILED: 2,
+};
 
 export class SwiftAuthenticatorV1 implements Authenticator {
-  private url?: string;
-  private token?: string;
-  private authStatus: AUTH_STATUS = AUTH_STATUS.UNAUTHENTICATED;
-  private authError: Error | null = null;
+  // Authenticated credentials
+  private url;
+  private token;
 
-  constructor(authUrl: string, username: string, password: string) {
-    // Start the authentication process
-    this.authenticateWithServer(authUrl, username, password);
-  }
+  // Authentication process flags
+  private authStatus = AUTH_STATUS.UNAUTHENTICATED;
+  private authError = null;
 
-  private async authenticateWithServer(
-    authUrl: string,
-    username: string,
-    password: string
-  ): Promise<void> {
+  constructor(
+    private readonly authUrl: string,
+    private readonly username: string,
+    private readonly password: string,
+    private readonly tenant: string | null
+  ) {}
+
+  private async runAuth() {
     try {
-      const response = await fetch(authUrl, {
-        method: 'GET',
+      const res = await fetch(this.authUrl, {
         headers: {
-          'x-auth-user': username,
-          'x-auth-key': password,
+          'x-auth-user':
+            this.tenant === null
+              ? this.username
+              : this.tenant + ':' + this.username,
+          'x-auth-key': this.password,
         },
       });
-
-      if (!response.ok) {
-        throw new Error(`Authentication failed with status ${response.status}`);
-      }
-
-      const headers = response.headers;
-      this.url = headers.get('x-storage-url') || '';
-      this.token = headers.get('x-auth-token') || '';
+      this.url = res.headers
+        .get('x-storage-url')
+        .replace(new RegExp('//', 'g'), '/');
+      this.token = res.headers.get('x-auth-token');
       this.authStatus = AUTH_STATUS.AUTHENTICATED;
-    } catch (err) {
+    } catch (error) {
       this.authStatus = AUTH_STATUS.FAILED;
-      this.authError = err instanceof Error ? err : new Error(String(err));
+      this.authError = error;
+      this.url = '';
+      this.token = '';
     }
   }
 
-  private _authenticate(): Promise<AuthResult> {
+  private async _authenticate(): Promise<{ url: string; token: string }> {
     switch (this.authStatus) {
       case AUTH_STATUS.UNAUTHENTICATED:
-        return new Promise<AuthResult>((resolve, reject) => {
-          if (
-            this.authStatus === AUTH_STATUS.AUTHENTICATED &&
-            this.url &&
-            this.token
-          ) {
-            resolve({ url: this.url, token: this.token });
-          } else if (this.authStatus === AUTH_STATUS.FAILED) {
-            reject(this.authError);
-          }
-        });
+        await this.runAuth();
+        return this._authenticate();
       case AUTH_STATUS.AUTHENTICATED:
-        return Promise.resolve({ url: this.url!, token: this.token! });
+        return { url: this.url, token: this.token };
       case AUTH_STATUS.FAILED:
-        return Promise.reject(this.authError);
-      default:
-        return Promise.reject(new Error('Unexpected authentication state'));
+        await this.runAuth();
+        if (AUTH_STATUS.AUTHENTICATED) {
+          return { url: this.url, token: this.token };
+        }
     }
+    return Promise.reject(this.authError);
   }
 
-  public authenticate(): Promise<AuthResult> {
+  async authenticate() {
     return this._authenticate();
   }
 }

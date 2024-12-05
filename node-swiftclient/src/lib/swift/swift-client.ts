@@ -1,4 +1,3 @@
-import { SwiftAuthenticatorV1 } from './swift-authenticator-v1';
 import {
   ConnectionConfig,
   SwiftAuthenticatorV3,
@@ -6,8 +5,41 @@ import {
 import { SwiftEntity } from './swift-entity';
 import { UnsupportedAuthenticator } from './unsupported-authenticator';
 import { SwiftContainer } from './swift-container';
-import { SwiftObject } from '../interfaces';
+
 import { SwiftContainerData } from '../interfaces/swift-container-data';
+import { Authenticator } from '../interfaces';
+import {
+  SwiftAuthenticatorV2,
+  V2ConnectionConfig,
+} from './swift-authenticator-v2';
+import { SwiftAuthenticatorV1 } from './swift-authenticator-v1';
+
+export type Connection = {
+  authUrl: string;
+  region?: string;
+  userAgent?: string;
+
+  // Authentication options
+  apiKey?: string;
+  userName?: string;
+  userId?: string;
+  domain?: string;
+  domainId?: string;
+
+  // Application Credential options
+  applicationCredentialId?: string;
+  applicationCredentialName?: string;
+  applicationCredentialSecret?: string;
+
+  // Tenant/Project options
+  tenant?: string;
+  tenantId?: string;
+  tenantDomain?: string;
+  tenantDomainId?: string;
+
+  // Trust option
+  trustId?: string;
+};
 
 export type SwiftClientOptions =
   | {
@@ -15,52 +47,18 @@ export type SwiftClientOptions =
       authUrl: string;
       username: string;
       password: string;
-    }
-  | {
-      authVersion: 3;
-      authUrl: string;
-      region?: string;
-      userAgent?: string;
-
-      // Authentication options
-      apiKey?: string;
-      userName?: string;
-      userId?: string;
-      domain?: string;
-      domainId?: string;
-
-      // Application Credential options
-      applicationCredentialId?: string;
-      applicationCredentialName?: string;
-      applicationCredentialSecret?: string;
-
-      // Tenant/Project options
       tenant?: string;
-      tenantId?: string;
-      tenantDomain?: string;
-      tenantDomainId?: string;
-
-      // Trust option
-      trustId?: string;
-    };
+    }
+  | ({
+      authVersion: 2;
+    } & Connection)
+  | ({
+      authVersion: 3;
+    } & Connection);
 
 export class SwiftClient extends SwiftEntity {
   constructor(config: SwiftClientOptions) {
-    super(
-      'Container',
-      null,
-      config.authVersion === 1
-        ? new SwiftAuthenticatorV1(
-            config.authUrl,
-            config.username,
-            config.password
-          )
-        : config.authVersion === 3
-        ? new SwiftAuthenticatorV3(config as ConnectionConfig)
-        : new UnsupportedAuthenticator(
-            (config as { authVersion: number }).authVersion
-          )
-    );
+    super('Container', null, SwiftClient.getAuthenticatorForVersion(config));
   }
 
   async createContainer(
@@ -75,12 +73,10 @@ export class SwiftClient extends SwiftEntity {
 
     if (publicRead) {
       if (!extra) extra = {};
-
       extra['x-container-read'] = '.r:*';
     }
-
+    
     const auth = await this.authenticator.authenticate();
-
     const req = new Request(`${auth.url}/${containerName}`, {
       method: 'PUT',
       headers: this.getHeaders(meta, extra, auth.token),
@@ -122,11 +118,36 @@ export class SwiftClient extends SwiftEntity {
     extra?: { [s: string]: string },
     query?: string | { [s: string]: string }
   ): Promise<SwiftContainerData[]> {
-    const containers = (await this.list(extra, query)) as unknown as SwiftContainerData[];
+    const containers = (await this.list(
+      extra,
+      query
+    )) as unknown as SwiftContainerData[];
     return containers;
   }
 
   getContainer(containerName: string): SwiftContainer {
     return new SwiftContainer(containerName, this.authenticator);
+  }
+
+  private static getAuthenticatorForVersion(
+    config: SwiftClientOptions
+  ): Authenticator {
+    switch (config.authVersion) {
+      case 1:
+        return new SwiftAuthenticatorV1(
+          config.authUrl,
+          config.username,
+          config.password,
+          config.tenant ?? null
+        );
+      case 2:
+        return new SwiftAuthenticatorV2(config as V2ConnectionConfig);
+      case 3:
+        return new SwiftAuthenticatorV3(config as ConnectionConfig);
+      default:
+        return new UnsupportedAuthenticator(
+          (config as { authVersion: number }).authVersion
+        );
+    }
   }
 }
