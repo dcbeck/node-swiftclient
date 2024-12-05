@@ -6,6 +6,8 @@ import {
 import { SwiftEntity } from './swift-entity';
 import { UnsupportedAuthenticator } from './unsupported-authenticator';
 import { SwiftContainer } from './swift-container';
+import { SwiftObject } from '../interfaces';
+import { SwiftContainerData } from '../interfaces/swift-container-data';
 
 export type SwiftClientOptions =
   | {
@@ -61,8 +63,8 @@ export class SwiftClient extends SwiftEntity {
     );
   }
 
-  async create(
-    name: string,
+  async createContainer(
+    containerName: string,
     publicRead: boolean,
     meta: Record<string, string> | null,
     extra: Record<string, string> | null
@@ -79,9 +81,9 @@ export class SwiftClient extends SwiftEntity {
 
     const auth = await this.authenticator.authenticate();
 
-    const req = new Request(`${auth.url}/${name}`, {
+    const req = new Request(`${auth.url}/${containerName}`, {
       method: 'PUT',
-      headers: this.headers(meta, extra, auth.token),
+      headers: this.getHeaders(meta, extra, auth.token),
     });
 
     const response = await fetch(req);
@@ -91,7 +93,7 @@ export class SwiftClient extends SwiftEntity {
     }
   }
 
-  async info() {
+  async clientInfo() {
     const auth = await this.authenticator.authenticate();
     const infoUrl = new URL(auth.url).origin + '/info';
     const response = await fetch(infoUrl, {
@@ -108,7 +110,23 @@ export class SwiftClient extends SwiftEntity {
     return response.json();
   }
 
-  container(name: string): SwiftContainer {
-    return new SwiftContainer(name, this.authenticator);
+  containerMeta(containerName: string): Promise<Record<string, string>> {
+    return this.getMeta(containerName);
+  }
+
+  deleteContainer(containerName: string): Promise<void> {
+    return this.delete(containerName);
+  }
+
+  async listAllContainers(
+    extra?: { [s: string]: string },
+    query?: string | { [s: string]: string }
+  ): Promise<SwiftContainerData[]> {
+    const containers = (await this.list(extra, query)) as unknown as SwiftContainerData[];
+    return containers;
+  }
+
+  getContainer(containerName: string): SwiftContainer {
+    return new SwiftContainer(containerName, this.authenticator);
   }
 }

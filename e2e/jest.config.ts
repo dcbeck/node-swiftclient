@@ -1,7 +1,11 @@
+
+
 export default {
   displayName: 'e2e',
   preset: '../jest.preset.js',
-  setupFiles: ['<rootDir>/src/test-setup.ts'],
+  setupFiles: [],
+  globalSetup: '<rootDir>/src/global-setup.ts',
+  globalTeardown: '<rootDir>/src/global-teardown.ts',
   testEnvironment: 'node',
   transform: {
     '^.+\\.[tj]s$': [

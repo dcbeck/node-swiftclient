@@ -17,7 +17,7 @@ export class SwiftEntity {
     this.authenticator = authenticator;
   }
 
-  async list(
+  protected async list(
     extra?: { [s: string]: string },
     query?: string | { [s: string]: string }
   ): Promise<SwiftObject[]> {
@@ -25,17 +25,15 @@ export class SwiftEntity {
       ? '?' + new URLSearchParams(query).toString()
       : '';
     const auth = await this.authenticator.authenticate();
-    console.log(auth);
-    console.log('sheeeeh', auth.url + this.urlSuffix + querystring);
     const response = await fetch(auth.url + this.urlSuffix + querystring, {
-      headers: this.headers(null, extra, auth.token),
+      headers: this.getHeaders(null, extra, auth.token),
     });
     if (!response.ok)
       throw new Error(`Error fetching list: ${response.statusText}`);
     return response.json();
   }
 
-  async update(
+  protected async update(
     name: string,
     meta: Record<string, string> | null,
     extra: Record<string, string> | null
@@ -43,18 +41,18 @@ export class SwiftEntity {
     const auth = await this.authenticator.authenticate();
     const response = await fetch(`${auth.url + this.urlSuffix}/${name}`, {
       method: 'POST',
-      headers: this.headers(meta, extra, auth.token),
+      headers: this.getHeaders(meta, extra, auth.token),
     });
     if (!response.ok)
       throw new Error(`Error updating ${name}: ${response.statusText}`);
     return response.json();
   }
 
-  async meta(name: string): Promise<Record<string, string>> {
+  protected async getMeta(name: string): Promise<Record<string, string>> {
     const auth = await this.authenticator.authenticate();
     const response = await fetch(`${auth.url + this.urlSuffix}/${name}`, {
       method: 'HEAD',
-      headers: this.headers(null, null, auth.token),
+      headers: this.getHeaders(null, null, auth.token),
     });
     if (!response.ok)
       throw new Error(
@@ -73,17 +71,17 @@ export class SwiftEntity {
     return meta;
   }
 
-  async delete(name: string): Promise<void> {
+  protected async delete(name: string): Promise<void> {
     const auth = await this.authenticator.authenticate();
     const response = await fetch(`${auth.url + this.urlSuffix}/${name}`, {
       method: 'DELETE',
-      headers: this.headers(null, null, auth.token),
+      headers: this.getHeaders(null, null, auth.token),
     });
     if (!response.ok)
       throw new Error(`Error deleting ${name}: ${response.statusText}`);
   }
 
-  protected headers(
+  protected getHeaders(
     meta: Record<string, string> | null,
     extra: Record<string, string> | null,
     token: string
