@@ -1,6 +1,5 @@
-import { Authenticator } from "../interfaces/authenticator";
-import { SwiftObject } from "../interfaces/swift-object";
-
+import { Authenticator } from '../interfaces/authenticator';
+import { SwiftObject } from '../interfaces/swift-object';
 
 export class SwiftEntity {
   protected readonly childName: string;
@@ -18,15 +17,15 @@ export class SwiftEntity {
   }
 
   protected async list(
-    extra?: { [s: string]: string },
-    query?: string | { [s: string]: string }
+    query?: string | { [s: string]: string },
+    extraHeaders?: { [s: string]: string },
   ): Promise<SwiftObject[]> {
     const querystring = query
       ? '?' + new URLSearchParams(query).toString()
       : '';
     const auth = await this.authenticator.authenticate();
     const response = await fetch(auth.url + this.urlSuffix + querystring, {
-      headers: this.getHeaders(null, extra, auth.token),
+      headers: this.getHeaders(null, extraHeaders, auth.token),
     });
     if (!response.ok)
       throw new Error(`Error fetching list: ${response.statusText}`);
@@ -36,16 +35,16 @@ export class SwiftEntity {
   protected async update(
     name: string,
     meta: Record<string, string> | null,
-    extra: Record<string, string> | null
-  ): Promise<any> {
+    extraHeaders: Record<string, string> | null
+  ): Promise<void> {
     const auth = await this.authenticator.authenticate();
     const response = await fetch(`${auth.url + this.urlSuffix}/${name}`, {
       method: 'POST',
-      headers: this.getHeaders(meta, extra, auth.token),
+      headers: this.getHeaders(meta, extraHeaders, auth.token),
     });
     if (!response.ok)
       throw new Error(`Error updating ${name}: ${response.statusText}`);
-    return response.json();
+    return
   }
 
   protected async getMeta(name: string): Promise<Record<string, string>> {
@@ -67,7 +66,6 @@ export class SwiftEntity {
       const match = key.match(regex);
       if (match) meta[match[1]] = value;
     });
-
     return meta;
   }
 
@@ -83,13 +81,13 @@ export class SwiftEntity {
 
   protected getHeaders(
     meta: Record<string, string> | null,
-    extra: Record<string, string> | null,
+    extraHeaders: Record<string, string> | null,
     token: string
   ): Record<string, string> {
     const headers: Record<string, string> = {
       accept: 'application/json',
       'x-auth-token': token,
-      ...extra,
+      ...extraHeaders,
     };
 
     if (meta != null) {

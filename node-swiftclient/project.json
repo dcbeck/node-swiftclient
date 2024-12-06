@@ -20,8 +20,9 @@
         "generateExportsField": true,
         "outputPath": "dist/node-swiftclient",
         "tsConfig": "node-swiftclient/tsconfig.lib.json",
-        "packageJson": "node-swiftclient/package.json",
-        "main": "node-swiftclient/src/index.ts"
+        "project": "node-swiftclient/package.json",
+        "main": "node-swiftclient/src/index.ts",
+        "assets": [{ "input": ".", "output": ".", "glob": "*.md" }]
       }
     },
     "nx-release-publish": {

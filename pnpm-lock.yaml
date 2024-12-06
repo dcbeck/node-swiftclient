@@ -54,6 +54,9 @@ importers:
       '@types/node':
         specifier: ~18.16.9
         version: 18.16.20
+      core-js:
+        specifier: ^3.36.1
+        version: 3.37.1
       esbuild:
         specifier: ^0.19.2
         version: 0.19.12
@@ -66,6 +69,9 @@ importers:
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@18.16.20)(ts-node@10.9.1(@swc/core@1.5.29(@swc/helpers@0.5.15))(@types/node@18.16.20)(typescript@5.5.4))
+      jest-date:
+        specifier: ^1.1.6
+        version: 1.1.6
       jest-environment-node:
         specifier: ^29.7.0
         version: 29.7.0
@@ -2103,6 +2109,10 @@ packages:
     resolution: {integrity: sha512-jRFi8UDGo6j+odZiEpjazZaWqEal3w/basFjQHQEwVtZJGDpxbH1MeYluwCS8Xq5wmLJooDlMgvVarmWfGM44g==}
     engines: {node: '>=0.10'}
 
+  date-fns@2.30.0:
+    resolution: {integrity: sha512-fnULvOpxnC5/Vg3NCiWelDsLiUc9bRwAPs/+LfTLNvetFCtCTN+yQz15C/fs4AwX1R9K5GLtLfn8QW+dWisaAw==}
+    engines: {node: '>=0.11'}
+
   dayjs@1.11.13:
     resolution: {integrity: sha512-oaMBel6gjolK862uaPQOVTA7q3TZhuSvuMQAAglQDOWYO9A91IrAOUJEyKVlqJlHE0vq5p5UXxzdPfMH/x6xNg==}
 
@@ -2865,6 +2875,9 @@ packages:
         optional: true
       ts-node:
         optional: true
+
+  jest-date@1.1.6:
+    resolution: {integrity: sha512-n6MYs62hhyFnJVUCv1xQmfh6NBzVt6PqRIbDo3sYR+g9/7j4DXgR8yLgdpbSMeo9VmdaoKXWkIXDntumq4JRqQ==}
 
   jest-diff@29.7.0:
     resolution: {integrity: sha512-LMIgiIrhigmPrs03JHpxUh2yISK3vLFPkAodPeo0+BuF7wA2FoQbkEg1u8gBYBThncu7e1oEDUfIXVuTqLRUjw==}
@@ -6966,6 +6979,10 @@ snapshots:
     dependencies:
       assert-plus: 1.0.0
 
+  date-fns@2.30.0:
+    dependencies:
+      '@babel/runtime': 7.26.0
+
   dayjs@1.11.13: {}
 
   debug@2.6.9:
@@ -7843,6 +7860,12 @@ snapshots:
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
+
+  jest-date@1.1.6:
+    dependencies:
+      '@babel/runtime': 7.26.0
+      date-fns: 2.30.0
+      jest-matcher-utils: 29.7.0
 
   jest-diff@29.7.0:
     dependencies:

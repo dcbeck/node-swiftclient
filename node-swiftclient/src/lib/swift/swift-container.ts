@@ -7,26 +7,82 @@ export class SwiftContainer extends SwiftEntity {
   constructor(containerName: string, authenticator: Authenticator) {
     super('Object', containerName, authenticator);
   }
+
   async listObjects(
-    extra?: { [s: string]: string },
-    query?: string | { [s: string]: string }
+    options?:
+      | {
+          limit?: number;
+          prefix?: string; // https://docs.openstack.org/swift/latest/api/pseudo-hierarchical-folders-directories.html
+          delimiter?: string; //default is a slash '/'
+        }
+      | {
+          limit?: number;
+          reverse?: boolean;
+          marker?: string; //For a string value, x , constrains the list to items whose names are greater than x.
+          end_marker?: string; //For a string value, x , constrains the list to items whose names are less than x.
+        },
+    additionalQueryParams?: { [s: string]: string },
+    extraHeaders?: { [s: string]: string }
   ): Promise<SwiftObject[]> {
-    return this.list(extra, query);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let queryParams: any = {};
+    if (additionalQueryParams) {
+      queryParams = { ...additionalQueryParams };
+    }
+    if (options) {
+      if (this.hasPrefix(options)) {
+        if (options.prefix) {
+          queryParams.prefix = this.ensureTrailingSlash(options.prefix);
+        }
+        if (options.delimiter) {
+          queryParams.delimiter = options.delimiter;
+        } else {
+          queryParams.delimiter = '/';
+        }
+      } else {
+        if (options.marker) {
+          queryParams.maker = options.marker;
+        }
+        if (options.marker) {
+          queryParams.maker = options.marker;
+        }
+        if (options.end_marker) {
+          queryParams.end_marker = options.end_marker;
+        }
+        if (typeof options.reverse === 'boolean') {
+          queryParams.reverse = options.reverse;
+        }
+      }
+
+      if (typeof options.limit === 'number') {
+        queryParams.limit = Math.round(options.limit);
+      }
+    }
+
+    return this.list(queryParams, extraHeaders);
   }
 
   async getObjectMeta(objectName: string): Promise<Record<string, string>> {
     return this.getMeta(objectName);
   }
 
+  async patchObjectMeta(
+    name: string,
+    meta: Record<string, string> | null,
+    extraHeaders?: Record<string, string> | null
+  ): Promise<void> {
+    await this.update(name, meta, extraHeaders ?? null);
+  }
+
   async putObject(
     objectName: string,
     stream: Readable,
     meta: Record<string, string> | null,
-    extra: Record<string, string> | null
+    extraHeaders: Record<string, string> | null
   ): Promise<void> {
     const auth = await this.authenticator.authenticate();
 
-    const headers = this.getHeaders(meta, extra, auth.token);
+    const headers = this.getHeaders(meta, extraHeaders, auth.token);
     const url = `${auth.url + this.urlSuffix}/${objectName}`;
 
     const duplex = {
@@ -100,5 +156,21 @@ export class SwiftContainer extends SwiftEntity {
     } else {
       throw new Error('Response does not have a body');
     }
+  }
+
+  private ensureTrailingSlash(inputStr: string) {
+    const str = inputStr.trim();
+    if (str.charAt(str.length - 1) !== '/') {
+      return str + '/';
+    }
+    return str;
+  }
+
+  private hasPrefix(options: unknown): options is {
+    prefix?: string;
+    limit?: number;
+  } {
+    const opt = options as any;
+    return typeof opt.prefix === 'string' && opt.prefix.trim().length > 0;
   }
 }

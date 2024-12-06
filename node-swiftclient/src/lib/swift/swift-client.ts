@@ -65,21 +65,21 @@ export class SwiftClient extends SwiftEntity {
     containerName: string,
     publicRead: boolean,
     meta: Record<string, string> | null,
-    extra: Record<string, string> | null
+    extraHeaders: Record<string, string> | null
   ): Promise<void> {
     if (typeof publicRead === 'undefined') {
       publicRead = false;
     }
 
     if (publicRead) {
-      if (!extra) extra = {};
-      extra['x-container-read'] = '.r:*';
+      if (!extraHeaders) extraHeaders = {};
+      extraHeaders['x-container-read'] = '.r:*';
     }
-    
+
     const auth = await this.authenticator.authenticate();
     const req = new Request(`${auth.url}/${containerName}`, {
       method: 'PUT',
-      headers: this.getHeaders(meta, extra, auth.token),
+      headers: this.getHeaders(meta, extraHeaders, auth.token),
     });
 
     const response = await fetch(req);
@@ -89,7 +89,7 @@ export class SwiftClient extends SwiftEntity {
     }
   }
 
-  async clientInfo() {
+  async getClientInfo() {
     const auth = await this.authenticator.authenticate();
     const infoUrl = new URL(auth.url).origin + '/info';
     const response = await fetch(infoUrl, {
@@ -106,7 +106,7 @@ export class SwiftClient extends SwiftEntity {
     return response.json();
   }
 
-  containerMeta(containerName: string): Promise<Record<string, string>> {
+  getContainerMeta(containerName: string): Promise<Record<string, string>> {
     return this.getMeta(containerName);
   }
 
@@ -115,12 +115,12 @@ export class SwiftClient extends SwiftEntity {
   }
 
   async listAllContainers(
-    extra?: { [s: string]: string },
-    query?: string | { [s: string]: string }
+    query?: string | { [s: string]: string },
+    extraHeaders?: { [s: string]: string }
   ): Promise<SwiftContainerData[]> {
     const containers = (await this.list(
-      extra,
-      query
+      query,
+      extraHeaders
     )) as unknown as SwiftContainerData[];
     return containers;
   }

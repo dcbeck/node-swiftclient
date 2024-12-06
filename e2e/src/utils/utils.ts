@@ -61,20 +61,69 @@ export function getAssetsFolder() {
   return path.join(__dirname, '../../assets');
 }
 
-export function getTestFile(fileName: string) {
+export function getTestFile(
+  fileName: string,
+  meta: Record<string, string>,
+  extra: Record<string, string>
+) {
   const assetFolder = getAssetsFolder();
   return {
     fileName,
-    filePath: path.join(assetFolder, 'dummy.pdf'),
+    filePath: path.join(assetFolder, fileName),
+    meta,
+    extra,
   };
 }
 
 export function getTestFiles() {
-  return {
-    pdfFile: getTestFile('dummy.pdf'),
-    txtFile: getTestFile('test.txt'),
-    m3dFile: getTestFile('teapot.m3d'),
-    jpgFile: getTestFile('test.jpg'),
-    pngFile: getTestFile('test.png'),
-  };
+  return [
+    getTestFile(
+      'docs/dummy.pdf',
+      { 'meta-data-1': 'this is a pdf file', filetype: '3dModel' },
+      { 'x-test-header': 'document' }
+    ),
+    getTestFile(
+      'img/test.jpg',
+      {
+        'meta-data-2': 'this is a jpg file',
+        createdby: 'testUser',
+        filetype: '3dModel',
+      },
+      { 'x-test-header': 'image' }
+    ),
+    getTestFile(
+      'docs/test.txt',
+      { 'meta-data-3': 'this is a txt file', filetype: '3dModel' },
+      { 'x-test-header': 'document' }
+    ),
+    getTestFile(
+      'models/teapot.m3d',
+      {
+        'meta-data-4': 'this is a m3d file',
+        createdby: 'swiftClient1',
+        filetype: '3dModel',
+      },
+      { 'x-test-header': '3dModel' }
+    ),
+    getTestFile(
+      'img/test.png',
+      { 'meta-data-5': 'this is a png file', filetype: 'image' },
+      { 'x-test-header': 'image' }
+    ),
+  ];
+}
+
+export function sortJson(jsonObj) {
+  const sortedKeys = Object.keys(jsonObj).sort(); // Sort the keys alphabetically
+  const sortedJson = {};
+
+  sortedKeys.forEach((key) => {
+    // If the value is an object, sort it recursively
+    sortedJson[key] =
+      typeof jsonObj[key] === 'object' && !Array.isArray(jsonObj[key])
+        ? sortJson(jsonObj[key])
+        : jsonObj[key];
+  });
+
+  return sortedJson;
 }

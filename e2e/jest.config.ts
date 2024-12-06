@@ -3,7 +3,7 @@
 export default {
   displayName: 'e2e',
   preset: '../jest.preset.js',
-  setupFiles: [],
+  setupFilesAfterEnv: ['<rootDir>/src/setup-test.ts'],
   globalSetup: '<rootDir>/src/global-setup.ts',
   globalTeardown: '<rootDir>/src/global-teardown.ts',
   testEnvironment: 'node',
