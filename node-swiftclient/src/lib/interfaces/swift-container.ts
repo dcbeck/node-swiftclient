@@ -65,8 +65,8 @@ export interface SwiftContainer {
   putObject(
     objectName: string,
     stream: Readable,
-    meta: Record<string, string> | null,
-    extraHeaders: Record<string, string> | null,
+    meta?: Record<string, string> | null,
+    extraHeaders?: Record<string, string> | null,
   ): Promise<void>;
   /**
    * Uploads a buffer to the specified object in the container.
@@ -80,8 +80,8 @@ export interface SwiftContainer {
   putObject(
     objectName: string,
     buffer: Buffer,
-    meta: Record<string, string> | null,
-    extraHeaders: Record<string, string> | null,
+    meta?: Record<string, string> | null,
+    extraHeaders?: Record<string, string> | null,
   ): Promise<void>;
 
   /**

@@ -71,8 +71,8 @@ export class SwiftClient {
   async createContainer(
     containerName: string,
     publicRead: boolean,
-    meta: Record<string, string> | null,
-    extraHeaders: Record<string, string> | null
+    meta?: Record<string, string> | null,
+    extraHeaders?: Record<string, string> | null
   ): Promise<void> {
     if (typeof publicRead === 'undefined') {
       publicRead = false;
@@ -86,7 +86,11 @@ export class SwiftClient {
     const auth = await this.sw.authenticator.authenticate();
     const req = new Request(`${auth.url}/${containerName}`, {
       method: 'PUT',
-      headers: this.sw.getHeaders(meta, extraHeaders, auth.token),
+      headers: this.sw.getHeaders(
+        meta ?? null,
+        extraHeaders ?? null,
+        auth.token
+      ),
     });
 
     const response = await fetch(req);

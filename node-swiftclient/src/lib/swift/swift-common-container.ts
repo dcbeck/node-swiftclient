@@ -71,29 +71,29 @@ export class SwiftCommonContainer
 
   async patchObjectMeta(
     name: string,
-    meta: Record<string, string> | null,
+    meta?: Record<string, string> | null,
     extraHeaders?: Record<string, string> | null
   ): Promise<void> {
-    await this.update(name, meta, extraHeaders ?? null);
+    await this.update(name, meta ?? null, extraHeaders ?? null);
   }
 
   async putObject(
     objectName: string,
     stream: Readable,
-    meta: Record<string, string> | null,
-    extraHeaders: Record<string, string> | null
+    meta?: Record<string, string> | null,
+    extraHeaders?: Record<string, string> | null
   ): Promise<void>;
   async putObject(
     objectName: string,
     buffer: Buffer,
-    meta: Record<string, string> | null,
-    extraHeaders: Record<string, string> | null
+    meta?: Record<string, string> | null,
+    extraHeaders?: Record<string, string> | null
   ): Promise<void>;
   async putObject(
     objectName: string,
     streamOrBuffer: Readable | Buffer,
-    meta: Record<string, string> | null,
-    extraHeaders: Record<string, string> | null
+    meta?: Record<string, string> | null,
+    extraHeaders?: Record<string, string> | null
   ): Promise<void> {
     let stream: Readable | undefined;
     if (Buffer.isBuffer(streamOrBuffer)) {
@@ -104,7 +104,7 @@ export class SwiftCommonContainer
 
     const auth = await this.authenticator.authenticate();
 
-    const headers = this.getHeaders(meta, extraHeaders, auth.token);
+    const headers = this.getHeaders(meta ?? null, extraHeaders ?? null, auth.token);
     const url = `${auth.url + this.urlSuffix}/${objectName}`;
 
     const duplex = {

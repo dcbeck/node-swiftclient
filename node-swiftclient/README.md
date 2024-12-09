@@ -1,8 +1,7 @@
 # Openstack Swift Client Library for Node.js
 
-This Node.js `SwiftClient` library is a TypeScript-based client for OpenStack Swift object storage. It simplifies managing containers, objects, and metadata, supporting all Swift authentication versions (v1.0, v2.0, and v3).
-
----
+A Node.js library for interacting with OpenStack Swift Object Storage. This library provides robust functionality for managing containers and objects, offering a clean and straightforward API for common Swift operations.
+It supports all Swift authentication versions (v1.0, v2.0, and v3).
 
 ## **Installation**
 
@@ -23,33 +22,47 @@ yarn install node-swiftclient
 Here’s how to create a container, upload a file, and list its objects:
 
 ```typescript
-import { SwiftClient } from 'swift-client';
-
-const client = new SwiftClient({
-  authVersion: 3,
-  authUrl: 'https://auth.example.com/v3',
-  username: 'your-username',
-  password: 'your-password',
-  tenant: 'your-tenant-name',
-});
+import { SwiftClient } from 'node-swiftclient';
+import { Readable } from 'stream';
 
 async function example() {
-  // Create a container
-  await client.createContainer('my-container', true, null, null);
-
-  // Upload an object
-  const container = await client.getContainer('my-container');
-  const buffer = Buffer.from('Hello, Swift!');
-  await container.putObject('hello.txt', buffer, {
-    'Content-Type': 'text/plain',
+  // Initialize SwiftClient
+  const client = new SwiftClient({
+    authVersion: 3,
+    authUrl: 'https://auth.example.com/v3',
+    userName: 'demo',
+    apiKey: 'demo',
+    tenant: 'test',
+    tenantDomain: 'Default',
+    domain: 'Default',
   });
 
-  // List all objects in the pseudo-hierarchical folder "img/"
-  const objects = await container.listObjects({ prefix: 'img/' });
-  console.log(objects);
-}
+  // Create a container
+  await client.createContainer('my-container', true, {
+    'X-Meta-Info': 'example',
+  });
 
-example();
+  // List containers
+  const containers = await client.listAllContainers();
+  console.log('Containers:', containers);
+
+  // Upload an object as a stream
+  const container = client.getContainer('my-container');
+  const stream = Readable.from('Hello, Swift!');
+  await container.putObject('docs/hello.txt', stream);
+
+  //List all object in pseudo-folder 'img'
+  const objects = container.listObjects({ prefix: 'docs/' });
+  console.log(objects);
+
+  // Download the object as a buffer
+  const buffer = await container.getObjectAsBuffer('docs/hello.txt');
+  console.log('Downloaded Content:', buffer.toString());
+
+  // Clean up: Delete the object and container
+  await container.deleteObject('docs/hello.txt');
+  await client.deleteContainer('my-container');
+}
 ```
 
 ---
@@ -101,10 +114,10 @@ example();
 ```typescript
 const client = new SwiftClient({
   authVersion: 1,
-  authUrl: 'https://auth.example.com/v1.0',
+  authUrl: 'https://auth.example.com/v1',
   username: 'user',
   password: 'pass',
-  tenant: 'tenant-name',
+  tenant: 'tenant-id',
 });
 ```
 
@@ -115,10 +128,10 @@ Note: Version 2 is deprecated and you should upgrade your swift storage.
 ```typescript
 const client = new SwiftClient({
   authVersion: 2,
-  authUrl: 'https://auth.example.com/v2.0',
+  authUrl: 'https://auth.example.com/v2',
   username: 'user',
   password: 'pass',
-  tenant: 'tenant-name',
+  tenant: 'tenant-id',
   region: 'region-name',
 });
 ```
@@ -131,12 +144,10 @@ const client = new SwiftClient({
   authUrl: 'https://auth.example.com/v3',
   username: 'user',
   password: 'pass',
-  tenant: 'tenant-name',
+  tenant: 'tenant-id',
   region: 'region-name',
 });
 ```
-
----
 
 ## License
 
