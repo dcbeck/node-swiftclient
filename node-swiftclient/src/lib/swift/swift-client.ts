@@ -35,7 +35,7 @@ export type SwiftClientOptions =
   | {
       authVersion: 1;
       authUrl: string;
-      username: string;
+      userName: string;
       password: string;
       tenant?: string;
     }
@@ -86,11 +86,7 @@ export class SwiftClient {
     const auth = await this.sw.authenticator.authenticate();
     const req = new Request(`${auth.url}/${containerName}`, {
       method: 'PUT',
-      headers: this.sw.getHeaders(
-        meta ?? null,
-        extraHeaders ?? null,
-        auth.token
-      ),
+      headers: this.sw.getHeaders(meta ?? null, extraHeaders  ?? null, auth.token),
     });
 
     const response = await fetch(req);

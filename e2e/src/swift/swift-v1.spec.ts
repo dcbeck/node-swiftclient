@@ -18,7 +18,7 @@ describe('Swift version 1 tests', () => {
     swift = new SwiftClient({
       authVersion: 1,
       authUrl: 'http://127.0.0.1:6001/auth/v1.0',
-      username: 'tester2',
+      userName: 'tester2',
       password: 'testing2',
       tenant: 'test2',
     });

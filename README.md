@@ -1,6 +1,6 @@
 # Openstack Swift Client Library for Node.js
 
-A Node.js library for interacting with OpenStack Swift Object Storage. This library provides robust functionality for managing containers and objects, offering a clean and straightforward API for common Swift operations.
+A Node.js client library for interacting with OpenStack Swift Object Storage. This library provides robust functionality for managing containers and objects, offering a clean and straightforward API for common Swift operations.
 It supports all Swift authentication versions (v1.0, v2.0, and v3).
 
 ## **Installation**
@@ -19,7 +19,7 @@ yarn install node-swiftclient
 
 ## Quick Example
 
-Here’s how to create a container, upload a file, and list its objects:
+How to create a container, upload a file, and list objects:
 
 ```typescript
 import { SwiftClient } from 'node-swiftclient';
@@ -112,12 +112,12 @@ async function example() {
 ### Auth Version 1
 
 ```typescript
-const client = new SwiftClient({
+swift = new SwiftClient({
   authVersion: 1,
-  authUrl: 'https://auth.example.com/v1',
-  username: 'user',
-  password: 'pass',
-  tenant: 'tenant-id',
+  authUrl: 'http://example.com/auth/v1.0',
+  userName: 'tester2',
+  password: 'testing2',
+  tenant: 'test2',
 });
 ```
 
@@ -126,26 +126,26 @@ const client = new SwiftClient({
 Note: Version 2 is deprecated and you should upgrade your swift storage.
 
 ```typescript
-const client = new SwiftClient({
+swift = new SwiftClient({
   authVersion: 2,
-  authUrl: 'https://auth.example.com/v2',
-  username: 'user',
-  password: 'pass',
-  tenant: 'tenant-id',
-  region: 'region-name',
+  authUrl: 'http://auth.example.com/v2.0',
+  userName: 'demo',
+  apiKey: 'demo',
+  tenant: 'test',
 });
 ```
 
 ### Auth Version 3
 
 ```typescript
-const client = new SwiftClient({
+swift = new SwiftClient({
   authVersion: 3,
-  authUrl: 'https://auth.example.com/v3',
-  username: 'user',
-  password: 'pass',
-  tenant: 'tenant-id',
-  region: 'region-name',
+  authUrl: 'http://auth.example.com/v3',
+  userName: 'demo',
+  apiKey: 'demo',
+  tenant: 'test',
+  tenantDomain: 'Default',
+  domain: 'Default',
 });
 ```
 

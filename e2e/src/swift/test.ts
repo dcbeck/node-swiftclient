@@ -4,13 +4,19 @@ import { Readable } from 'stream';
 async function example() {
   // Initialize SwiftClient
   const client = new SwiftClient({
-    authVersion: 3,
-    authUrl: 'https://auth.example.com/v3',
-    userName: 'demo',
-    apiKey: 'demo',
-    tenant: 'test',
-    tenantDomain: 'Default',
-    domain: 'Default',
+    authVersion: 2,
+    authUrl: 'https://auth.example.com/v2.0',
+    userName: 'user',
+    password: 'pass',
+    tenant: 'Default',
+  });//#endregion
+
+  const swift = new SwiftClient({
+    authVersion: 1,
+    authUrl: 'http://127.0.0.1:6001/auth/v1.0',
+    userName: 'tester2',
+    password: 'testing2',
+    tenant: 'test2',
   });
 
   // Create a container

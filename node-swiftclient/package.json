@@ -1,10 +1,29 @@
 {
   "name": "node-swiftclient",
-  "version": "1.1.0",
+  "description": "A Node.js client library for interacting with OpenStack Swift Object Storage",
+  "version": "1.1.2",
   "author": "Daniel Beck (https://github.com/dcbeck)",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/dcbeck/node-swiftclient"
+  },
+  "keywords": [
+    "openstack",
+    "swift",
+    "client",
+    "api",
+    "object-storage",
+    "nodejs",
+    "cloud",
+    "object",
+    "storage"
+  ],
+  "bugs": {
+    "url": "https://github.com/dcbeck/node-swiftclient/issues"
+  },
+  "homepage": "https://github.com/dcbeck/node-swiftclient#readme",
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

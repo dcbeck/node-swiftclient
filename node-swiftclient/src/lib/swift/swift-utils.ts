@@ -12,7 +12,7 @@ export function getAuthenticatorForVersion(
     case 1:
       return new SwiftAuthenticatorV1(
         config.authUrl,
-        config.username,
+        config.userName,
         config.password,
         config.tenant ?? null
       );
