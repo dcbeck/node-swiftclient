@@ -1,9 +1,12 @@
 import { Readable } from 'stream';
 import { SwiftEntity } from './swift-entity';
 import { Authenticator } from '../interfaces/authenticator';
-import { SwiftObject } from '../interfaces';
+import { SwiftObject, SwiftContainer } from '../interfaces';
 
-export class SwiftContainer extends SwiftEntity {
+export class SwiftCommonContainer
+  extends SwiftEntity
+  implements SwiftContainer
+{
   constructor(containerName: string, authenticator: Authenticator) {
     super('Object', containerName, authenticator);
   }
@@ -79,7 +82,26 @@ export class SwiftContainer extends SwiftEntity {
     stream: Readable,
     meta: Record<string, string> | null,
     extraHeaders: Record<string, string> | null
+  ): Promise<void>;
+  async putObject(
+    objectName: string,
+    buffer: Buffer,
+    meta: Record<string, string> | null,
+    extraHeaders: Record<string, string> | null
+  ): Promise<void>;
+  async putObject(
+    objectName: string,
+    streamOrBuffer: Readable | Buffer,
+    meta: Record<string, string> | null,
+    extraHeaders: Record<string, string> | null
   ): Promise<void> {
+    let stream: Readable | undefined;
+    if (Buffer.isBuffer(streamOrBuffer)) {
+      stream = this.bufferToStream(streamOrBuffer);
+    } else {
+      stream = streamOrBuffer;
+    }
+
     const auth = await this.authenticator.authenticate();
 
     const headers = this.getHeaders(meta, extraHeaders, auth.token);
@@ -156,6 +178,39 @@ export class SwiftContainer extends SwiftEntity {
     } else {
       throw new Error('Response does not have a body');
     }
+  }
+
+  async getObjectAsBuffer(objectName: string): Promise<Buffer> {
+    const auth = await this.authenticator.authenticate();
+    const response = await fetch(`${auth.url + this.urlSuffix}/${objectName}`, {
+      method: 'GET',
+      headers: {
+        'x-auth-token': auth.token,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    // Streaming response to output stream
+    if (response.body) {
+      const arrayBuffer = await response.arrayBuffer();
+      // Convert the ArrayBuffer to a Buffer
+      const buffer = Buffer.from(arrayBuffer);
+      return buffer;
+    } else {
+      throw new Error('Response does not have a body');
+    }
+  }
+
+  private bufferToStream(buffer: Buffer) {
+    return new Readable({
+      read() {
+        this.push(buffer); // Push the buffer into the stream
+        this.push(null); // Signal the end of the stream
+      },
+    });
   }
 
   private ensureTrailingSlash(inputStr: string) {

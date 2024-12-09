@@ -1,6 +1,6 @@
 # Openstack Swift Client Library for Node.js
 
-This **Swift Client Library** provides a Node.js interface for interacting with OpenStack Swift, a highly available and distributed object storage system. This library simplifies authentication, container management, and object operations using a structured TypeScript API.
+This Node.js `SwiftClient` library is a TypeScript-based client for OpenStack Swift object storage. It simplifies managing containers, objects, and metadata, supporting all Swift authentication versions (v1.0, v2.0, and v3).
 
 ---
 
@@ -15,241 +15,124 @@ npm install node-swiftclient
 or
 
 ```bash
-pnpm install node-swiftclient
+yarn install node-swiftclient
 ```
 
----
 
-## **Getting Started**
+## Quick Example
 
-The main entry point for this library is the `SwiftClient` class, which provides methods to manage containers and objects in OpenStack Swift.
-
-### **Basic Usage Example**
+Here’s how to create a container, upload a file, and list its objects:
 
 ```typescript
-import { SwiftClient, SwiftClientOptions, SwiftContainer } from 'swift-client';
-import { Readable } from 'stream';
+import { SwiftClient } from 'swift-client';
 
-const config: SwiftClientOptions = {
+const client = new SwiftClient({
   authVersion: 3,
-  authUrl: 'https://example.com/auth/v3',
+  authUrl: 'https://auth.example.com/v3',
   username: 'your-username',
   password: 'your-password',
-  tenant: 'your-tenant',
-};
+  tenant: 'your-tenant-id',
+});
 
-async function main(): Promise<void> {
-  // Initialize SwiftClient with configuration
-  const client = new SwiftClient(config);
+async function example() {
+  // Create a container
+  await client.createContainer('my-container', true, null, null);
 
-  try {
-    // List all containers
-    const containers = await client.listAllContainers();
-    console.log('Containers:', containers);
+  // Upload an object
+  const container = await client.getContainer('my-container');
+  const buffer = Buffer.from('Hello, Swift!');
+  await container.putObject('hello.txt', buffer, { 'Content-Type': 'text/plain' });
 
-    // Create a new container
-    const containerName = 'my-container';
-    await client.createContainer(containerName, true, null, null);
-    console.log(`Container "${containerName}" created successfully.`);
-
-    // Get a reference to the container
-    const container: SwiftContainer = client.getContainer(containerName);
-
-    // List all objects in the pseudo-hierarchical folder "img/" inside the container
-    const objects = await container.listObjects({ prefix: 'img/' });
-    console.log(`Objects in "${containerName}":`, objects);
-
-    // Upload an object to the container
-    const objectName = 'my-object.txt';
-    const stream: Readable = Readable.from('Hello, OpenStack Swift!'); // Example readable stream
-    await container.putObject(
-      objectName,
-      stream,
-      { 'Content-Type': 'text/plain' }, // Metadata
-      null // Extra headers
-    );
-    console.log(`Object "${objectName}" uploaded successfully.`);
-
-    // Download the object
-    const objectStream = await container.getObject(objectName);
-    const reader = objectStream.getReader();
-
-    let chunk: ReadableStreamReadResult<Uint8Array>;
-    while (!(chunk = await reader.read()).done) {
-      const data = new TextDecoder().decode(chunk.value);
-      console.log(`Downloaded object data: ${data}`);
-    }
-
-    // Delete the object
-    await container.deleteObject(objectName);
-    console.log(`Object "${objectName}" deleted successfully.`);
-  } catch (error) {
-    console.error('An error occurred:', error);
-  }
+  // List objects
+  const objects = await container.listObjects();
+  console.log(objects);
 }
 
-main().catch((err) => console.error('Unhandled error:', err));
+example();
 ```
 
 ---
 
-## **API Reference**
+## Key Features
+
+- **Container Management**: Create, delete, and list containers.
+- **Object Management**: Upload, download, delete, and list objects in containers.
+- **Metadata**: Set and retrieve metadata for containers and objects.
+- **Authentication**: Supports Swift authentication versions 1.0, 2.0, and 3.
+
+---
+
+## API Documentation
 
 ### **SwiftClient**
 
-The `SwiftClient` class is the entry point to the library. It is used to authenticate and manage containers.
-
-#### **Constructor**
-
-```typescript
-constructor(config: SwiftClientOptions)
-```
-
-- **config**: Configuration for authentication, including version, URL, and credentials.
-
-#### **Methods**
-
-| Method                                                           | Description                                                                       |
-| ---------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `createContainer(containerName, publicRead, meta, extraHeaders)` | Creates a new container with optional metadata.                                   |
-| `getClientInfo()`                                                | Retrieves information about the current client.                                   |
-| `getContainerMeta(containerName)`                                | Retrieves metadata of a specified container.                                      |
-| `deleteContainer(containerName)`                                 | Deletes the specified container.                                                  |
-| `listAllContainers(query, extraHeaders)`                         | Lists all containers with optional query parameters.                              |
-| `getContainer(containerName)`                                    | Returns a `SwiftContainer` instance for interacting with the specified container. |
+| Method                                           | Description                                                                                  |
+|--------------------------------------------------|----------------------------------------------------------------------------------------------|
+| `createContainer(containerName, publicRead, meta, extraHeaders)` | Creates a new container with optional metadata and headers.                                   |
+| `getContainer(containerName)`                    | Retrieves a `SwiftContainer` object for managing objects in a container.                    |
+| `listAllContainers(query?, extraHeaders?)`       | Lists all containers with optional filters and headers.                                      |
+| `deleteContainer(containerName)`                 | Deletes a container.                                                                         |
+| `getClientInfo()`                                | Retrieves information about the authenticated Swift client.                                  |
+| `getContainerMeta(containerName)`                | Retrieves metadata for the specified container.                                              |
 
 ---
 
 ### **SwiftContainer**
 
-The `SwiftContainer` class provides methods to manage objects within a container.
-
-#### **Constructor**
-
-```typescript
-constructor(containerName: string, authenticator: Authenticator)
-```
-
-#### **Methods**
-
-| Method                                                      | Description                                                        |
-| ----------------------------------------------------------- | ------------------------------------------------------------------ |
-| `listObjects(options, additionalQueryParams, extraHeaders)` | Lists all objects in the container with optional query parameters. |
-| `getObjectMeta(objectName)`                                 | Retrieves metadata for a specific object.                          |
-| `putObject(objectName, stream, meta, extraHeaders)`         | Uploads an object to the container.                                |
-| `deleteObject(objectName, when)`                            | Deletes a specified object with an optional delay.                 |
-| `getObject(objectName)`                                     | Retrieves the specified object as a readable stream.               |
-| `patchObjectMeta(objectName,  meta, extraHeaders)`          | Updates metadata for a specific object.                            |
+| Method                                                    | Description                                                                                  |
+|-----------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| `listObjects(options?)`                                   | Lists objects in the container with optional filters (e.g., `prefix`, `limit`).             |
+| `getObjectMeta(objectName)`                               | Retrieves metadata for a specific object.                                                   |
+| `patchObjectMeta(objectName, meta, extraHeaders?)`        | Updates metadata for an object.                                                             |
+| `putObject(objectName, data, meta, extraHeaders)`         | Uploads an object using a buffer or stream with optional metadata and headers.              |
+| `deleteObject(objectName, when?)`                        | Deletes an object, optionally scheduling its deletion for a future time.                    |
+| `getObject(objectName)`                                   | Retrieves an object as a readable stream.                                                   |
+| `getObjectAsBuffer(objectName)`                          | Retrieves an object as a buffer.                                                            |
 
 ---
 
-### **SwiftClientOptions**
+## Configuration
 
-The configuration for `SwiftClient` supports three authentication versions:
+`SwiftClient` supports multiple authentication methods. Examples:
 
-#### **Version 1**
-
+### Auth Version 1
 ```typescript
-{
-    authVersion: 1;
-    authUrl: string;
-    username: string;
-    password: string;
-    tenant?: string;
-}
+const client = new SwiftClient({
+  authVersion: 1,
+  authUrl: 'https://auth.example.com/v1',
+  username: 'user',
+  password: 'pass',
+  tenant: 'tenant-id',
+});
 ```
 
-#### **Version 2**
-
+### Auth Version 2
+Note: Version 2 is deprecated and you should upgrade your swift storage.
 ```typescript
-{
-    authVersion: 2;
-    authUrl: string;
-    username?: string;
-    userId?: string;
-    apiKey?: string;
-    tenant?: string;
-    tenantId?: string;
-    domain?: string;
-    domainId?: string;
-    trustId?: string;
-}
+const client = new SwiftClient({
+  authVersion: 2,
+  authUrl: 'https://auth.example.com/v2',
+  username: 'user',
+  password: 'pass',
+  tenant: 'tenant-id',
+  region: 'region-name',
+});
 ```
 
-#### **Version 3**
-
+### Auth Version 3
 ```typescript
-{
-    authVersion: 3;
-    authUrl: string;
-    username?: string;
-    userId?: string;
-    domain?: string;
-    domainId?: string;
-    applicationCredentialId?: string;
-    applicationCredentialName?: string;
-    applicationCredentialSecret?: string;
-    tenant?: string;
-    tenantId?: string;
-    tenantDomain?: string;
-    tenantDomainId?: string;
-    trustId?: string;
-}
-```
-
----
-
-### **Examples**
-
-#### **Listing Containers**
-
-```typescript
-const containers = await client.listAllContainers();
-console.log('Containers:', containers);
-```
-
-#### **Uploading an Object**
-
-```typescript
-const stream = /* Your Readable stream */;
-await container.putObject('example.txt', stream, { 'Content-Type': 'text/plain' }, null);
-```
-
-#### **Downloading an Object**
-
-```typescript
-const objectStream = await container.getObject('example.txt');
-const reader = objectStream.getReader();
-
-reader.read().then(({ value, done }) => {
-  if (!done) {
-    console.log(new TextDecoder().decode(value));
-  }
+const client = new SwiftClient({
+  authVersion: 3,
+  authUrl: 'https://auth.example.com/v3',
+  username: 'user',
+  password: 'pass',
+  tenant: 'tenant-id',
+  region: 'region-name',
 });
 ```
 
 ---
 
-## **Development**
+## License
 
-To contribute to this library:
-
-1. Clone the repository.
-2. Install dependencies using `pnpm install`.
-3. Run e2e tests using `pnpm e2e` (docker needed).
-
----
-
-## **License**
-
-This library is licensed under the MIT License. See the LICENSE file for more details.
-
----
-
-## **Support**
-
-For any issues or questions, please open an issue in the GitHub repository or contact the maintainers directly.
-
----
-
-Happy coding! 🎉
+This library is licensed under the [MIT License](LICENSE).

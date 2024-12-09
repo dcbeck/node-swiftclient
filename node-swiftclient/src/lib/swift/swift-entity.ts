@@ -2,9 +2,9 @@ import { Authenticator } from '../interfaces/authenticator';
 import { SwiftObject } from '../interfaces/swift-object';
 
 export class SwiftEntity {
-  protected readonly childName: string;
-  protected readonly urlSuffix: string;
-  protected readonly authenticator: Authenticator;
+  public readonly childName: string;
+  public readonly urlSuffix: string;
+  public readonly authenticator: Authenticator;
 
   constructor(
     childName: string,
@@ -16,7 +16,7 @@ export class SwiftEntity {
     this.authenticator = authenticator;
   }
 
-  protected async list(
+  public async list(
     query?: string | { [s: string]: string },
     extraHeaders?: { [s: string]: string },
   ): Promise<SwiftObject[]> {
@@ -32,7 +32,7 @@ export class SwiftEntity {
     return response.json();
   }
 
-  protected async update(
+  public async update(
     name: string,
     meta: Record<string, string> | null,
     extraHeaders: Record<string, string> | null
@@ -47,7 +47,7 @@ export class SwiftEntity {
     return
   }
 
-  protected async getMeta(name: string): Promise<Record<string, string>> {
+  public async getMeta(name: string): Promise<Record<string, string>> {
     const auth = await this.authenticator.authenticate();
     const response = await fetch(`${auth.url + this.urlSuffix}/${name}`, {
       method: 'HEAD',
@@ -69,7 +69,7 @@ export class SwiftEntity {
     return meta;
   }
 
-  protected async delete(name: string): Promise<void> {
+  public async delete(name: string): Promise<void> {
     const auth = await this.authenticator.authenticate();
     const response = await fetch(`${auth.url + this.urlSuffix}/${name}`, {
       method: 'DELETE',
@@ -79,7 +79,7 @@ export class SwiftEntity {
       throw new Error(`Error deleting ${name}: ${response.statusText}`);
   }
 
-  protected getHeaders(
+  public getHeaders(
     meta: Record<string, string> | null,
     extraHeaders: Record<string, string> | null,
     token: string

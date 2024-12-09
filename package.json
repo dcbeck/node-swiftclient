@@ -3,15 +3,14 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "build": "nx build node-swiftclient",
+    "build": "nx build node-swiftclient && pnpm api-extractor run --local && node prepublish.js",
     "e2e": "nx run e2e:e2e -- --runInBand"
   },
   "private": true,
-  "dependencies": {
-    "axios": "^1.6.0"
-  },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
+    "@microsoft/api-documenter": "^7.26.1",
+    "@microsoft/api-extractor": "^7.48.0",
     "@nx/esbuild": "20.1.4",
     "@nx/eslint": "20.1.4",
     "@nx/eslint-plugin": "20.1.4",
@@ -25,6 +24,7 @@
     "@swc/helpers": "~0.5.11",
     "@types/jest": "^29.5.12",
     "@types/node": "~18.16.9",
+    "axios": "^1.6.0",
     "core-js": "^3.36.1",
     "esbuild": "^0.19.2",
     "eslint": "^9.8.0",
@@ -34,7 +34,9 @@
     "jest-environment-node": "^29.7.0",
     "nx": "20.1.4",
     "prettier": "^2.6.2",
+    "rimraf": "^6.0.1",
     "rollup": "^4.14.0",
+    "sharp": "^0.33.5",
     "ts-jest": "^29.1.0",
     "ts-node": "10.9.1",
     "tslib": "^2.3.0",

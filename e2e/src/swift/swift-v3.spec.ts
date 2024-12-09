@@ -1,6 +1,6 @@
 import { SwiftClient, SwiftContainer } from 'node-swiftclient';
 import * as fs from 'fs';
-import { getTestFiles, sortJson, waitUntilTestContainerIsRunning } from '../utils/utils';
+import { getTestFiles, readImageMetaFromBuffer, readImageMetaFromStreamReader, sortJson, waitUntilTestContainerIsRunning } from '../utils/utils';
 import { expectedUploadedFiles } from './expected-results';
 
 describe('Swift version 3 tests', () => {
@@ -23,6 +23,7 @@ describe('Swift version 3 tests', () => {
     });
   });
 
+ 
   it('should create a container', async () => {
     await swift.createContainer(containerName, false, containerMeta, null);
 
@@ -83,6 +84,23 @@ describe('Swift version 3 tests', () => {
     expect(files).toMatchObject(expectedUploadedFiles);
   });
 
+  it('should upload a from a buffer', async () => {
+    const testStr = 'This is a test buffer äöü';
+    const buffer = Buffer.from(testStr, 'utf-8');
+    await container.putObject(
+      'raw/testBuffer.txt',
+      buffer,
+      { 'buffer-meta': 'abc' },
+      null
+    );
+
+    const outputBuffer = await container.getObjectAsBuffer(
+      'raw/testBuffer.txt'
+    );
+
+    expect(outputBuffer.toString()).toBe(testStr);
+  });
+
   it('should list objects in pseudo-hierarchical folders', async () => {
     const imgObjects = await container.listObjects({
       prefix: 'img',
@@ -106,6 +124,41 @@ describe('Swift version 3 tests', () => {
         .join(',')
     ).toBe('docs/dummy.pdf,docs/test.txt');
   });
+
+  it('should get image object as buffer', async () => {
+    const testFiles = getTestFiles();
+    const jpgFile = testFiles.find((t) => t.fileName.endsWith('jpg'));
+    if (!jpgFile) throw new Error('No jpg file found');
+
+    const buffer = await container.getObjectAsBuffer(jpgFile.fileName);
+
+    const metaData = await readImageMetaFromBuffer(buffer);
+
+    expect(metaData).toMatchObject({
+      format: 'jpeg',
+      width: 300,
+      height: 200,
+      hasAlpha: false,
+    })
+  });
+
+  it('should get image object as readable stream', async () => {
+    const testFiles = getTestFiles();
+    const jpgFile = testFiles.find((t) => t.fileName.endsWith('jpg'));
+    if (!jpgFile) throw new Error('No jpg file found');
+
+    const reader = await container.getObject(jpgFile.fileName);
+
+    const metaData = await readImageMetaFromStreamReader(reader);
+
+    expect(metaData).toMatchObject({
+      format: 'jpeg',
+      width: 300,
+      height: 200,
+      hasAlpha: false,
+    })
+  });
+
 
   it('should get meta info for a test files', async () => {
     const testFiles = getTestFiles();

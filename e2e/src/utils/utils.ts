@@ -1,6 +1,8 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'util';
 import * as path from 'path';
+import sharp from 'sharp';
+import { Readable } from 'node:stream';
 
 const execAsync = promisify(exec);
 
@@ -126,4 +128,30 @@ export function sortJson(jsonObj) {
   });
 
   return sortedJson;
+}
+
+export async function readImageMetaFromBuffer(buffer: Buffer) {
+  const data = await sharp(buffer).metadata();
+  return data;
+}
+
+export async function readImageMetaFromStreamReader(reader: ReadableStreamDefaultReader<Uint8Array>) {
+  const buffer = await streamToBuffer(reader);
+  return readImageMetaFromBuffer(buffer);
+}
+
+async function streamToBuffer(reader: ReadableStreamDefaultReader<Uint8Array>): Promise<Buffer> {
+  const chunks = [];
+  let totalLength = 0;
+
+  while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      chunks.push(value);
+      totalLength += value.byteLength;
+  }
+
+  // Concatenate all chunks into a single Buffer
+  return Buffer.concat(chunks.map(chunk => Buffer.from(chunk)), totalLength);
 }

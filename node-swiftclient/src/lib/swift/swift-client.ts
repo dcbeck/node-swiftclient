@@ -1,20 +1,10 @@
-import {
-  ConnectionConfig,
-  SwiftAuthenticatorV3,
-} from './swift-authenticator-v3';
 import { SwiftEntity } from './swift-entity';
-import { UnsupportedAuthenticator } from './unsupported-authenticator';
-import { SwiftContainer } from './swift-container';
-
+import { SwiftCommonContainer } from './swift-common-container';
 import { SwiftContainerData } from '../interfaces/swift-container-data';
-import { Authenticator } from '../interfaces';
-import {
-  SwiftAuthenticatorV2,
-  V2ConnectionConfig,
-} from './swift-authenticator-v2';
-import { SwiftAuthenticatorV1 } from './swift-authenticator-v1';
+import { SwiftContainer } from '../interfaces';
+import { getAuthenticatorForVersion } from './swift-utils';
 
-export type Connection = {
+export type SwiftConnection = {
   authUrl: string;
   region?: string;
   userAgent?: string;
@@ -51,16 +41,33 @@ export type SwiftClientOptions =
     }
   | ({
       authVersion: 2;
-    } & Connection)
+    } & SwiftConnection)
   | ({
       authVersion: 3;
-    } & Connection);
+    } & SwiftConnection);
 
-export class SwiftClient extends SwiftEntity {
+/**
+ * Represents the main client for interacting with a Swift storage service.
+ * Provides methods to manage containers and objects within those containers.
+ */
+export class SwiftClient {
+  private sw: SwiftEntity;
   constructor(config: SwiftClientOptions) {
-    super('Container', null, SwiftClient.getAuthenticatorForVersion(config));
+    this.sw = new SwiftEntity(
+      'Container',
+      null,
+      getAuthenticatorForVersion(config)
+    );
   }
 
+  /**
+   * Creates a new container in the Swift storage.
+   * @param containerName - The name of the container to create.
+   * @param publicRead - Whether the container should be publicly readable.
+   * @param meta - Optional metadata to associate with the container.
+   * @param extraHeaders - Optional extra headers to include in the request.
+   * @returns A promise that resolves when the container is successfully created.
+   */
   async createContainer(
     containerName: string,
     publicRead: boolean,
@@ -76,10 +83,10 @@ export class SwiftClient extends SwiftEntity {
       extraHeaders['x-container-read'] = '.r:*';
     }
 
-    const auth = await this.authenticator.authenticate();
+    const auth = await this.sw.authenticator.authenticate();
     const req = new Request(`${auth.url}/${containerName}`, {
       method: 'PUT',
-      headers: this.getHeaders(meta, extraHeaders, auth.token),
+      headers: this.sw.getHeaders(meta, extraHeaders, auth.token),
     });
 
     const response = await fetch(req);
@@ -89,8 +96,12 @@ export class SwiftClient extends SwiftEntity {
     }
   }
 
+  /**
+   * Retrieves information about the client configuration or state.
+   * @returns A promise resolving with client information.
+   */
   async getClientInfo() {
-    const auth = await this.authenticator.authenticate();
+    const auth = await this.sw.authenticator.authenticate();
     const infoUrl = new URL(auth.url).origin + '/info';
     const response = await fetch(infoUrl, {
       method: 'GET',
@@ -106,48 +117,47 @@ export class SwiftClient extends SwiftEntity {
     return response.json();
   }
 
+  /**
+   * Fetches metadata for a specified container.
+   * @param containerName - The name of the container.
+   * @returns A promise resolving with the container's metadata as a key-value object.
+   */
   getContainerMeta(containerName: string): Promise<Record<string, string>> {
-    return this.getMeta(containerName);
+    return this.sw.getMeta(containerName);
   }
 
+  /**
+   * Deletes a specified container.
+   * @param containerName - The name of the container to delete.
+   * @returns A promise that resolves when the container is successfully deleted.
+   */
   deleteContainer(containerName: string): Promise<void> {
-    return this.delete(containerName);
+    return this.sw.delete(containerName);
   }
 
+  /**
+   * Lists all containers accessible to the client.
+   * @param query - Optional query parameters as a string or key-value pairs.
+   * @param extraHeaders - Optional extra headers to include in the request.
+   * @returns A promise resolving with an array of container data.
+   */
   async listAllContainers(
     query?: string | { [s: string]: string },
     extraHeaders?: { [s: string]: string }
   ): Promise<SwiftContainerData[]> {
-    const containers = (await this.list(
+    const containers = (await this.sw.list(
       query,
       extraHeaders
     )) as unknown as SwiftContainerData[];
     return containers;
   }
 
+  /**
+   * Retrieves an interface to interact with a specific container.
+   * @param containerName - The name of the container.
+   * @returns A SwiftContainer instance for interacting with the container.
+   */
   getContainer(containerName: string): SwiftContainer {
-    return new SwiftContainer(containerName, this.authenticator);
-  }
-
-  private static getAuthenticatorForVersion(
-    config: SwiftClientOptions
-  ): Authenticator {
-    switch (config.authVersion) {
-      case 1:
-        return new SwiftAuthenticatorV1(
-          config.authUrl,
-          config.username,
-          config.password,
-          config.tenant ?? null
-        );
-      case 2:
-        return new SwiftAuthenticatorV2(config as V2ConnectionConfig);
-      case 3:
-        return new SwiftAuthenticatorV3(config as ConnectionConfig);
-      default:
-        return new UnsupportedAuthenticator(
-          (config as { authVersion: number }).authVersion
-        );
-    }
+    return new SwiftCommonContainer(containerName, this.sw.authenticator);
   }
 }
