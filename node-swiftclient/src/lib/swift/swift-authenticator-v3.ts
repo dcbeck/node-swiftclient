@@ -1,23 +1,18 @@
-// OpenStack V3 Authentication in Node.js with native fetch
-
 import { AuthResult } from '../interfaces/auth-result';
 import { Authenticator } from '../interfaces/authenticator';
 
-// Enum for authentication methods
 const V3_AUTH_METHODS = {
   TOKEN: 'token',
   PASSWORD: 'password',
   APPLICATION_CREDENTIAL: 'application_credential',
 } as const;
 
-// Enum for endpoint types
 enum EndpointType {
   Public = 'public',
   Internal = 'internal',
   Admin = 'admin',
 }
 
-// Interfaces for V3 Authentication structures
 interface V3Domain {
   id?: string;
   name?: string;
@@ -210,7 +205,6 @@ export class SwiftAuthenticatorV3 implements Authenticator {
       },
     };
 
-    // Application Credential Authentication
     if (
       (this.config.applicationCredentialId ||
         this.config.applicationCredentialName) &&
@@ -257,14 +251,10 @@ export class SwiftAuthenticatorV3 implements Authenticator {
         secret: this.config.applicationCredentialSecret,
         user,
       };
-    }
-    // Token Authentication
-    else if (!this.config.userName && !this.config.userId) {
+    } else if (!this.config.userName && !this.config.userId) {
       authRequest.auth.identity.methods = [V3_AUTH_METHODS.TOKEN];
       authRequest.auth.identity.token = { id: this.config.apiKey! };
-    }
-    // Password Authentication
-    else {
+    } else {
       authRequest.auth.identity.methods = [V3_AUTH_METHODS.PASSWORD];
 
       const user: V3User = {
@@ -286,19 +276,15 @@ export class SwiftAuthenticatorV3 implements Authenticator {
       authRequest.auth.identity.password = { user };
     }
 
-    // Scoping
     if (
       authRequest.auth.identity.methods[0] !==
       V3_AUTH_METHODS.APPLICATION_CREDENTIAL
     ) {
-      // Trust Scoping
       if (this.config.trustId) {
         authRequest.auth.scope = {
           trust: { id: this.config.trustId },
         };
-      }
-      // Project/Tenant Scoping
-      else if (this.config.tenantId || this.config.tenant) {
+      } else if (this.config.tenantId || this.config.tenant) {
         authRequest.auth.scope = { project: {} };
 
         if (this.config.tenantId) {
@@ -306,7 +292,6 @@ export class SwiftAuthenticatorV3 implements Authenticator {
         } else if (this.config.tenant) {
           authRequest.auth.scope.project!.name = this.config.tenant;
 
-          // Determine domain for the project
           if (this.config.tenantDomain) {
             authRequest.auth.scope.project!.domain = {
               name: this.config.tenantDomain,
@@ -333,7 +318,6 @@ export class SwiftAuthenticatorV3 implements Authenticator {
     return authRequest;
   }
 
-  // Helper methods similar to the Go version
   getStorageUrl(internal = false): string {
     const endpointType = internal ? EndpointType.Internal : EndpointType.Public;
     return this.getStorageUrlForEndpoint(endpointType);
@@ -347,7 +331,7 @@ export class SwiftAuthenticatorV3 implements Authenticator {
     const objectStoreCatalog = this.authResponse.token.catalog.find(
       (catalog) => catalog.type === 'object-store'
     );
-    
+
     if (!objectStoreCatalog) {
       return '';
     }
@@ -382,6 +366,6 @@ export class SwiftAuthenticatorV3 implements Authenticator {
   }
 
   getCdnUrl(): string {
-    return ''; // Kept as empty string in the original Go code
+    return '';
   }
 }

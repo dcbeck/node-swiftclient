@@ -110,6 +110,9 @@ importers:
       typescript-eslint:
         specifier: ^8.0.0
         version: 8.17.0(eslint@9.16.0)(typescript@5.5.4)
+      uglify-js:
+        specifier: ^3.19.3
+        version: 3.19.3
       verdaccio:
         specifier: ^5.0.4
         version: 5.33.0(typanion@3.14.0)
@@ -10050,8 +10053,7 @@ snapshots:
 
   typescript@5.5.4: {}
 
-  uglify-js@3.19.3:
-    optional: true
+  uglify-js@3.19.3: {}
 
   unicode-canonical-property-names-ecmascript@2.0.1: {}
 

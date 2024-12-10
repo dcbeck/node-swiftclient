@@ -4,23 +4,17 @@ function extractUTCOffset(dateString): number {
     if (dateString.endsWith('Z')) {
       return 0;
     }
-    // Regular expressions to match timezone offset formats
     const offsetRegex = /([+-])(\d{2}):?(\d{2})?/;
 
-    // Try to extract explicit timezone offset
     const match = dateString.match(offsetRegex);
 
     if (match) {
-      // Extract hours and minutes from the match
       const sign = match[1] === '+' ? 1 : -1;
       const hours = parseInt(match[2], 10);
       const minutes = match[3] ? parseInt(match[3], 10) : 0;
-
-      // Calculate total offset in minutes
       return sign * (hours * 60 + minutes);
     }
 
-    // Handle GMT format
     if (dateString.includes('GMT')) {
       const gmtRegex = /GMT([+-]\d{2}):?(\d{2})?/;
       const gmtMatch = dateString.match(gmtRegex);
@@ -33,11 +27,9 @@ function extractUTCOffset(dateString): number {
         return sign * (hours * 60 + minutes);
       }
     }
-    // If no explicit offset found, return null
   } catch (error) {
     /** noop */
   }
-  // Handle Z (Zulu time / UTC)
   return 0;
 }
 

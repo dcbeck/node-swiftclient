@@ -42,6 +42,7 @@
     "tslib": "^2.3.0",
     "typescript": "~5.5.2",
     "typescript-eslint": "^8.0.0",
+    "uglify-js": "^3.19.3",
     "verdaccio": "^5.0.4"
   },
   "nx": {

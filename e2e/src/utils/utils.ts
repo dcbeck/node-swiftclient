@@ -116,11 +116,10 @@ export function getTestFiles() {
 }
 
 export function sortJson(jsonObj) {
-  const sortedKeys = Object.keys(jsonObj).sort(); // Sort the keys alphabetically
+  const sortedKeys = Object.keys(jsonObj).sort();
   const sortedJson = {};
 
   sortedKeys.forEach((key) => {
-    // If the value is an object, sort it recursively
     sortedJson[key] =
       typeof jsonObj[key] === 'object' && !Array.isArray(jsonObj[key])
         ? sortJson(jsonObj[key])
@@ -151,7 +150,5 @@ async function streamToBuffer(reader: ReadableStreamDefaultReader<Uint8Array>): 
       chunks.push(value);
       totalLength += value.byteLength;
   }
-
-  // Concatenate all chunks into a single Buffer
   return Buffer.concat(chunks.map(chunk => Buffer.from(chunk)), totalLength);
 }

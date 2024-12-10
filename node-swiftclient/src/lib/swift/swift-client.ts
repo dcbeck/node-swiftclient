@@ -9,25 +9,21 @@ export type SwiftConnection = {
   region?: string;
   userAgent?: string;
 
-  // Authentication options
   apiKey?: string;
   userName?: string;
   userId?: string;
   domain?: string;
   domainId?: string;
 
-  // Application Credential options
   applicationCredentialId?: string;
   applicationCredentialName?: string;
   applicationCredentialSecret?: string;
 
-  // Tenant/Project options
   tenant?: string;
   tenantId?: string;
   tenantDomain?: string;
   tenantDomainId?: string;
 
-  // Trust option
   trustId?: string;
 };
 
@@ -86,7 +82,11 @@ export class SwiftClient {
     const auth = await this.sw.authenticator.authenticate();
     const req = new Request(`${auth.url}/${containerName}`, {
       method: 'PUT',
-      headers: this.sw.getHeaders(meta ?? null, extraHeaders  ?? null, auth.token),
+      headers: this.sw.getHeaders(
+        meta ?? null,
+        extraHeaders ?? null,
+        auth.token
+      ),
     });
 
     const response = await fetch(req);

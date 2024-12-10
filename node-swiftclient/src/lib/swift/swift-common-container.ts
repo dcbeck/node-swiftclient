@@ -3,7 +3,10 @@ import { SwiftEntity } from './swift-entity';
 import { Authenticator } from '../interfaces/authenticator';
 import { SwiftObject, SwiftContainer } from '../interfaces';
 import { SwiftObjectData } from '../interfaces/swift-object-data';
-import { getServerDateTimeOffset, parseDateWithServerTimezone } from '../utils/date-utils';
+import {
+  getServerDateTimeOffset,
+  parseDateWithServerTimezone,
+} from '../utils/date-utils';
 
 export class SwiftCommonContainer
   extends SwiftEntity
@@ -178,7 +181,6 @@ export class SwiftCommonContainer
       throw new Error(`HTTP ${response.status}`);
     }
 
-    // Streaming response to output stream
     if (response.body) {
       return response.body.getReader();
     } else {
@@ -199,10 +201,8 @@ export class SwiftCommonContainer
       throw new Error(`HTTP ${response.status}`);
     }
 
-    // Streaming response to output stream
     if (response.body) {
       const arrayBuffer = await response.arrayBuffer();
-      // Convert the ArrayBuffer to a Buffer
       const buffer = Buffer.from(arrayBuffer);
       return buffer;
     } else {
@@ -235,7 +235,10 @@ export class SwiftCommonContainer
     return {
       bytes: byteLength,
       last_modified: response.headers.get('Last-Modified')
-        ? parseDateWithServerTimezone(response.headers.get('Last-Modified'), serverTimezoneOffset)
+        ? parseDateWithServerTimezone(
+            response.headers.get('Last-Modified'),
+            serverTimezoneOffset
+          )
         : new Date(),
       name: objectName,
       content_type: response.headers.get('Content-Type'),
@@ -246,8 +249,8 @@ export class SwiftCommonContainer
   private bufferToStream(buffer: Buffer) {
     return new Readable({
       read() {
-        this.push(buffer); // Push the buffer into the stream
-        this.push(null); // Signal the end of the stream
+        this.push(buffer);
+        this.push(null);
       },
     });
   }
