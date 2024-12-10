@@ -24,7 +24,7 @@ function minifyFile(inputPath, outputPath) {
     // Output formatting options
     output: {
       // Preserve comments
-      comments: "all",
+      comments: false,
       // Keep line breaks
       beautify: false,
     },
