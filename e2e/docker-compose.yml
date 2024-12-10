@@ -1,7 +1,7 @@
 services:
   swift:
     image: clamparion/openstack-swift-keystone-docker:latest
-    container_name: swift-keystone
+    container_name: swift-keystone-server
     ports:
       - "6001:8080" #V1
       - "6023:35357" #V2 and V3

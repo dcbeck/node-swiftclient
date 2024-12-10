@@ -27,7 +27,7 @@ export default async function globalSetup() {
   for (let index = 0; index < 20; index++) {
     try {
       const output = await runCommand(
-        `docker exec -i swift-keystone /swift/bin/register-swift-endpoint.sh http://127.0.0.1:6001/`
+        `docker exec -i swift-keystone-server /swift/bin/register-swift-endpoint.sh http://127.0.0.1:6001`
       );
       const trimmedOutput = output.replace(/\s/g, '').toLowerCase().trim();
       if (!trimmedOutput.startsWith('error')) {
