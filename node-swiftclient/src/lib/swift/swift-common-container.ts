@@ -2,6 +2,8 @@ import { Readable } from 'stream';
 import { SwiftEntity } from './swift-entity';
 import { Authenticator } from '../interfaces/authenticator';
 import { SwiftObject, SwiftContainer } from '../interfaces';
+import { SwiftObjectData } from '../interfaces/swift-object-data';
+import { getServerDateTimeOffset, parseDateWithServerTimezone } from '../utils/date-utils';
 
 export class SwiftCommonContainer
   extends SwiftEntity
@@ -104,7 +106,11 @@ export class SwiftCommonContainer
 
     const auth = await this.authenticator.authenticate();
 
-    const headers = this.getHeaders(meta ?? null, extraHeaders ?? null, auth.token);
+    const headers = this.getHeaders(
+      meta ?? null,
+      extraHeaders ?? null,
+      auth.token
+    );
     const url = `${auth.url + this.urlSuffix}/${objectName}`;
 
     const duplex = {
@@ -202,6 +208,39 @@ export class SwiftCommonContainer
     } else {
       throw new Error('Response does not have a body');
     }
+  }
+
+  async getObjectInfo(objectName: string): Promise<SwiftObjectData> {
+    const auth = await this.authenticator.authenticate();
+    const response = await fetch(`${auth.url + this.urlSuffix}/${objectName}`, {
+      method: 'HEAD',
+      headers: {
+        'x-auth-token': auth.token,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    let byteLength = -1;
+    try {
+      byteLength = parseInt(response.headers.get('Content-Length') || '0');
+    } catch (error) {
+      /** noop */
+    }
+
+    const serverTimezoneOffset = getServerDateTimeOffset(response);
+
+    return {
+      bytes: byteLength,
+      last_modified: response.headers.get('Last-Modified')
+        ? parseDateWithServerTimezone(response.headers.get('Last-Modified'), serverTimezoneOffset)
+        : new Date(),
+      name: objectName,
+      content_type: response.headers.get('Content-Type'),
+      hash: response.headers.get('Etag'),
+    };
   }
 
   private bufferToStream(buffer: Buffer) {

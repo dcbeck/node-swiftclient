@@ -1,5 +1,9 @@
 import { Authenticator } from '../interfaces/authenticator';
 import { SwiftObject } from '../interfaces/swift-object';
+import {
+  getServerDateTimeOffset,
+  parseDateWithServerTimezone,
+} from '../utils/date-utils';
 
 export class SwiftEntity {
   public readonly childName: string;
@@ -18,7 +22,7 @@ export class SwiftEntity {
 
   public async list(
     query?: string | { [s: string]: string },
-    extraHeaders?: { [s: string]: string },
+    extraHeaders?: { [s: string]: string }
   ): Promise<SwiftObject[]> {
     const querystring = query
       ? '?' + new URLSearchParams(query).toString()
@@ -29,7 +33,19 @@ export class SwiftEntity {
     });
     if (!response.ok)
       throw new Error(`Error fetching list: ${response.statusText}`);
-    return response.json();
+    const objects = (await response.json()) as any[];
+
+    const serverTimezoneOffset = getServerDateTimeOffset(response);
+
+    for (const object of objects) {
+      if (typeof object.last_modified === 'string') {
+        object.last_modified = parseDateWithServerTimezone(
+          object.last_modified,
+          serverTimezoneOffset
+        );
+      }
+    }
+    return objects as SwiftObject[];
   }
 
   public async update(
@@ -44,7 +60,7 @@ export class SwiftEntity {
     });
     if (!response.ok)
       throw new Error(`Error updating ${name}: ${response.statusText}`);
-    return
+    return;
   }
 
   public async getMeta(name: string): Promise<Record<string, string>> {

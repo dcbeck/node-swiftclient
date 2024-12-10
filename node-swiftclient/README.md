@@ -102,6 +102,7 @@ async function example() {
 | `deleteObject(objectName, when?)`                  | Deletes an object, optionally scheduling its deletion for a future time.        |
 | `getObject(objectName)`                            | Retrieves an object as a readable stream.                                       |
 | `getObjectAsBuffer(objectName)`                    | Retrieves an object as a buffer.                                                |
+| `getObjectInfo(objectName)`                        | Retrieves information about an object without downloading it's content          |
 
 ---
 

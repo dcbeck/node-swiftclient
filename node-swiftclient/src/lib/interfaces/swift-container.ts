@@ -1,5 +1,6 @@
 import { Readable } from 'stream';
 import { SwiftObject } from './swift-object';
+import { SwiftObjectData } from './swift-object-data';
 
 /**
  * Represents a container in the Swift storage service.
@@ -100,6 +101,16 @@ export interface SwiftContainer {
   getObject(
     objectName: string
   ): Promise<ReadableStreamDefaultReader<Uint8Array>>;
+
+  /**
+   * Loads information of an object without downloading it's content
+   * @param objectName - The name of the object.
+   * @returns A promise resolving with the object information.
+   */
+  getObjectInfo(
+    objectName: string
+  ): Promise<SwiftObjectData>;
+
 
   /**
    * Downloads a specific object from the container as a buffer.

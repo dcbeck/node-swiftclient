@@ -120,6 +120,31 @@ describe('Swift version 2 tests', () => {
     ).toBe('docs/dummy.pdf,docs/test.txt');
   });
 
+  it('should get same object info individual as in list', async () => {
+    const testFiles = getTestFiles();
+    const jpgFile = testFiles.find((t) => t.fileName.endsWith('jpg'));
+    if (!jpgFile) throw new Error('No jpg file found');
+
+    const info = await container.getObjectInfo(jpgFile.fileName);
+
+    const imgObjects = await container.listObjects({
+      prefix: 'img',
+    });
+
+    const listObject = imgObjects.find((f) => f.name === jpgFile.fileName);
+    if (!listObject) throw new Error('img file not found in storage list');
+
+    expect(listObject.bytes).toBe(info.bytes);
+    expect(
+      Math.abs(
+        listObject.last_modified.getTime() - info.last_modified.getTime()
+      )
+    ).toBeLessThanOrEqual(1000);
+    expect(listObject.name).toBe(info.name);
+    expect(listObject.hash).toBe(info.hash);
+    expect(listObject.content_type).toBe(info.content_type);
+  });
+
   it('should get image object as buffer', async () => {
     const testFiles = getTestFiles();
     const jpgFile = testFiles.find((t) => t.fileName.endsWith('jpg'));
@@ -134,7 +159,7 @@ describe('Swift version 2 tests', () => {
       width: 300,
       height: 200,
       hasAlpha: false,
-    })
+    });
   });
 
   it('should get image object as readable stream', async () => {
@@ -151,9 +176,8 @@ describe('Swift version 2 tests', () => {
       width: 300,
       height: 200,
       hasAlpha: false,
-    })
+    });
   });
-
 
   it('should get meta info for a test files', async () => {
     const testFiles = getTestFiles();
