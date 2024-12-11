@@ -93,16 +93,17 @@ async function example() {
 
 ### **SwiftContainer**
 
-| Method                                             | Description                                                                     |
-| -------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `listObjects(options?)`                            | Lists objects in the container with optional filters (e.g., `prefix`, `limit`). |
-| `getObjectMeta(objectName)`                        | Retrieves metadata for a specific object.                                       |
-| `patchObjectMeta(objectName, meta, extraHeaders?)` | Updates metadata for an object.                                                 |
-| `putObject(objectName, data, meta, extraHeaders)`  | Uploads an object using a buffer or stream with optional metadata and headers.  |
-| `deleteObject(objectName, when?)`                  | Deletes an object, optionally scheduling its deletion for a future time.        |
-| `getObject(objectName)`                            | Retrieves an object as a readable stream.                                       |
-| `getObjectAsBuffer(objectName)`                    | Retrieves an object as a buffer.                                                |
-| `getObjectInfo(objectName)`                        | Retrieves information about an object without downloading it's content          |
+| Method                                             | Description                                                                                           |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `listObjects(options?)`                            | Lists objects in the container with optional filters (e.g., `prefix`, `limit`).                       |
+| `iterateObjects(options)`                          | Iterate asynchronously over objects in the container with optional filters (e.g., `prefix`, `limit`). |
+| `getObjectMeta(objectName)`                        | Retrieves metadata for a specific object.                                                             |
+| `patchObjectMeta(objectName, meta, extraHeaders?)` | Updates metadata for an object.                                                                       |
+| `putObject(objectName, data, meta, extraHeaders)`  | Uploads an object using a buffer or stream with optional metadata and headers.                        |
+| `deleteObject(objectName, when?)`                  | Deletes an object, optionally scheduling its deletion for a future time.                              |
+| `getObject(objectName)`                            | Retrieves an object as a readable stream.                                                             |
+| `getObjectAsBuffer(objectName)`                    | Retrieves an object as a buffer.                                                                      |
+| `getObjectInfo(objectName)`                        | Retrieves information about an object without downloading it's content                                |
 
 ---
 

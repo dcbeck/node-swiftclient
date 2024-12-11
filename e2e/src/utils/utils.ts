@@ -2,7 +2,6 @@ import { exec } from 'node:child_process';
 import { promisify } from 'util';
 import * as path from 'path';
 import sharp from 'sharp';
-import { Readable } from 'node:stream';
 
 const execAsync = promisify(exec);
 

@@ -7,6 +7,7 @@ import {
   getServerDateTimeOffset,
   parseDateWithServerTimezone,
 } from '../utils/date-utils';
+import { tryAuthentication } from './swift-auth';
 
 export class SwiftCommonContainer
   extends SwiftEntity
@@ -17,18 +18,14 @@ export class SwiftCommonContainer
   }
 
   async listObjects(
-    options?:
-      | {
-          limit?: number;
-          prefix?: string; // https://docs.openstack.org/swift/latest/api/pseudo-hierarchical-folders-directories.html
-          delimiter?: string; //default is a slash '/'
-        }
-      | {
-          limit?: number;
-          reverse?: boolean;
-          marker?: string; //For a string value, x , constrains the list to items whose names are greater than x.
-          end_marker?: string; //For a string value, x , constrains the list to items whose names are less than x.
-        },
+    options?: {
+      prefix?: string; // https://docs.openstack.org/swift/latest/api/pseudo-hierarchical-folders-directories.html
+      delimiter?: string; //default is a slash '/'
+      limit?: number;
+      reverse?: boolean;
+      marker?: string; //For a string value, x , constrains the list to items whose names are greater than x.
+      end_marker?: string; //For a string value, x , constrains the list to items whose names are less than x.
+    },
     additionalQueryParams?: { [s: string]: string },
     extraHeaders?: { [s: string]: string }
   ): Promise<SwiftObject[]> {
@@ -47,27 +44,69 @@ export class SwiftCommonContainer
         } else {
           queryParams.delimiter = '/';
         }
-      } else {
-        if (options.marker) {
-          queryParams.maker = options.marker;
-        }
-        if (options.marker) {
-          queryParams.maker = options.marker;
-        }
-        if (options.end_marker) {
-          queryParams.end_marker = options.end_marker;
-        }
-        if (typeof options.reverse === 'boolean') {
-          queryParams.reverse = options.reverse;
-        }
       }
-
+      if (options.marker) {
+        queryParams.maker = options.marker;
+      }
+      if (options.end_marker) {
+        queryParams.end_marker = options.end_marker;
+      }
+      if (typeof options.reverse === 'boolean') {
+        queryParams.reverse = options.reverse;
+      }
       if (typeof options.limit === 'number') {
-        queryParams.limit = Math.round(options.limit);
+        queryParams.limit = `${Math.round(options.limit)}`;
       }
     }
 
     return this.list(queryParams, extraHeaders);
+  }
+
+  async *iterateObjects(
+    options?: {
+      batchSize?: number;
+      prefix?: string;
+      delimiter?: string;
+    },
+    additionalQueryParams?: { [s: string]: string },
+    extraHeaders?: { [s: string]: string }
+  ): AsyncGenerator<SwiftObject> {
+    const batchSize = options?.batchSize ?? 1000;
+    let marker: string | undefined = undefined;
+    let isCompleted = false;
+    let lastKey = '';
+
+    while (!isCompleted) {
+      const objects: SwiftObject[] = await this.listObjects(
+        {
+          limit: batchSize,
+          prefix: options?.prefix,
+          delimiter: options?.delimiter,
+          marker: marker,
+        },
+        additionalQueryParams,
+        extraHeaders
+      );
+
+      if (objects.length === 0) {
+        isCompleted = true;
+        break;
+      }
+
+      const keys = this.getTopObjectKeys(objects);
+      if (keys === lastKey) {
+        isCompleted = true;
+        break;
+      }
+      lastKey = keys;
+
+      for (const object of objects) {
+        yield object;
+      }
+
+      isCompleted = objects.length < batchSize;
+      marker = objects[objects.length - 1].name;
+    }
   }
 
   async getObjectMeta(objectName: string): Promise<Record<string, string>> {
@@ -107,7 +146,7 @@ export class SwiftCommonContainer
       stream = streamOrBuffer;
     }
 
-    const auth = await this.authenticator.authenticate();
+    const auth = await tryAuthentication(this.authenticator);
 
     const headers = this.getHeaders(
       meta ?? null,
@@ -148,8 +187,7 @@ export class SwiftCommonContainer
           'Expected `when` to be a number of seconds or a Date object'
         );
       }
-
-      const auth = await this.authenticator.authenticate();
+      const auth = await tryAuthentication(this.authenticator);
       const response = await fetch(
         `${auth.url + this.urlSuffix}/${objectName}`,
         {
@@ -169,7 +207,7 @@ export class SwiftCommonContainer
   async getObject(
     objectName: string
   ): Promise<ReadableStreamDefaultReader<Uint8Array>> {
-    const auth = await this.authenticator.authenticate();
+    const auth = await tryAuthentication(this.authenticator);
     const response = await fetch(`${auth.url + this.urlSuffix}/${objectName}`, {
       method: 'GET',
       headers: {
@@ -189,7 +227,7 @@ export class SwiftCommonContainer
   }
 
   async getObjectAsBuffer(objectName: string): Promise<Buffer> {
-    const auth = await this.authenticator.authenticate();
+    const auth = await tryAuthentication(this.authenticator);
     const response = await fetch(`${auth.url + this.urlSuffix}/${objectName}`, {
       method: 'GET',
       headers: {
@@ -211,7 +249,7 @@ export class SwiftCommonContainer
   }
 
   async getObjectInfo(objectName: string): Promise<SwiftObjectData> {
-    const auth = await this.authenticator.authenticate();
+    const auth = await tryAuthentication(this.authenticator);
     const response = await fetch(`${auth.url + this.urlSuffix}/${objectName}`, {
       method: 'HEAD',
       headers: {
@@ -244,6 +282,15 @@ export class SwiftCommonContainer
       content_type: response.headers.get('Content-Type'),
       hash: response.headers.get('Etag'),
     };
+  }
+
+  private getTopObjectKeys(objects: SwiftObject[]): string {
+    let keys = '';
+    const len = Math.min(objects.length, 10);
+    for (let index = 0; index < len; index++) {
+      keys += objects[index].name + '_';
+    }
+    return keys;
   }
 
   private bufferToStream(buffer: Buffer) {

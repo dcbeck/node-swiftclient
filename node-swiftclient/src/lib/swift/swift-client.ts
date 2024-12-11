@@ -3,6 +3,7 @@ import { SwiftCommonContainer } from './swift-common-container';
 import { SwiftContainerData } from '../interfaces/swift-container-data';
 import { SwiftContainer } from '../interfaces';
 import { getAuthenticatorForVersion } from './swift-utils';
+import { tryAuthentication } from './swift-auth';
 
 export type SwiftConnection = {
   authUrl: string;
@@ -78,8 +79,7 @@ export class SwiftClient {
       if (!extraHeaders) extraHeaders = {};
       extraHeaders['x-container-read'] = '.r:*';
     }
-
-    const auth = await this.sw.authenticator.authenticate();
+    const auth = await tryAuthentication(this.sw.authenticator);
     const req = new Request(`${auth.url}/${containerName}`, {
       method: 'PUT',
       headers: this.sw.getHeaders(
@@ -101,7 +101,7 @@ export class SwiftClient {
    * @returns A promise resolving with client information.
    */
   async getClientInfo() {
-    const auth = await this.sw.authenticator.authenticate();
+    const auth = await tryAuthentication(this.sw.authenticator);
     const infoUrl = new URL(auth.url).origin + '/info';
     const response = await fetch(infoUrl, {
       method: 'GET',

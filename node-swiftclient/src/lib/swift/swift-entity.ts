@@ -4,6 +4,7 @@ import {
   getServerDateTimeOffset,
   parseDateWithServerTimezone,
 } from '../utils/date-utils';
+import { tryAuthentication } from './swift-auth';
 
 export class SwiftEntity {
   public readonly childName: string;
@@ -24,10 +25,10 @@ export class SwiftEntity {
     query?: string | { [s: string]: string },
     extraHeaders?: { [s: string]: string }
   ): Promise<SwiftObject[]> {
-    const querystring = query
+    const querystring = query && Object.keys(query).length > 0
       ? '?' + new URLSearchParams(query).toString()
       : '';
-    const auth = await this.authenticator.authenticate();
+    const auth = await tryAuthentication(this.authenticator);
     const response = await fetch(auth.url + this.urlSuffix + querystring, {
       headers: this.getHeaders(null, extraHeaders, auth.token),
     });
@@ -53,7 +54,7 @@ export class SwiftEntity {
     meta: Record<string, string> | null,
     extraHeaders: Record<string, string> | null
   ): Promise<void> {
-    const auth = await this.authenticator.authenticate();
+    const auth = await tryAuthentication(this.authenticator);
     const response = await fetch(`${auth.url + this.urlSuffix}/${name}`, {
       method: 'POST',
       headers: this.getHeaders(meta, extraHeaders, auth.token),
@@ -64,7 +65,7 @@ export class SwiftEntity {
   }
 
   public async getMeta(name: string): Promise<Record<string, string>> {
-    const auth = await this.authenticator.authenticate();
+    const auth = await tryAuthentication(this.authenticator);
     const response = await fetch(`${auth.url + this.urlSuffix}/${name}`, {
       method: 'HEAD',
       headers: this.getHeaders(null, null, auth.token),
@@ -86,7 +87,7 @@ export class SwiftEntity {
   }
 
   public async delete(name: string): Promise<void> {
-    const auth = await this.authenticator.authenticate();
+    const auth = await tryAuthentication(this.authenticator);
     const response = await fetch(`${auth.url + this.urlSuffix}/${name}`, {
       method: 'DELETE',
       headers: this.getHeaders(null, null, auth.token),

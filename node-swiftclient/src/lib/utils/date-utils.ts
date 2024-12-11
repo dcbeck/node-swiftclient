@@ -73,3 +73,4 @@ function hasTimezone(dateString: string): boolean {
   const timezoneRegex = /(Z|[+-]\d{2}:\d{2}|UTC|GMT)/i;
   return timezoneRegex.test(dateString);
 }
+
