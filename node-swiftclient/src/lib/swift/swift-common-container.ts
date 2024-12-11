@@ -35,17 +35,8 @@ export class SwiftCommonContainer
       queryParams = { ...additionalQueryParams };
     }
     if (options) {
-      if (this.hasPrefix(options)) {
-        if (options.prefix) {
-          queryParams.prefix = this.ensureTrailingSlash(options.prefix);
-        }
-        if (options.delimiter) {
-          queryParams.delimiter = options.delimiter;
-        } else {
-          queryParams.delimiter = '/';
-        }
-      }
       if (options.marker) {
+        const paths = options.marker.split('/');
         queryParams.maker = options.marker;
       }
       if (options.end_marker) {
@@ -57,56 +48,22 @@ export class SwiftCommonContainer
       if (typeof options.limit === 'number') {
         queryParams.limit = `${Math.round(options.limit)}`;
       }
+
+      if (this.hasPrefix(options)) {
+        if (options.prefix) {
+          queryParams.prefix = this.ensureTrailingSlash(options.prefix);
+        }
+        if (!options.marker) {
+          if (options.delimiter) {
+            queryParams.delimiter = options.delimiter;
+          } else {
+            queryParams.delimiter = '/';
+          }
+        }
+      }
     }
 
     return this.list(queryParams, extraHeaders);
-  }
-
-  async *iterateObjects(
-    options?: {
-      batchSize?: number;
-      prefix?: string;
-      delimiter?: string;
-    },
-    additionalQueryParams?: { [s: string]: string },
-    extraHeaders?: { [s: string]: string }
-  ): AsyncGenerator<SwiftObject> {
-    const batchSize = options?.batchSize ?? 1000;
-    let marker: string | undefined = undefined;
-    let isCompleted = false;
-    let lastKey = '';
-
-    while (!isCompleted) {
-      const objects: SwiftObject[] = await this.listObjects(
-        {
-          limit: batchSize,
-          prefix: options?.prefix,
-          delimiter: options?.delimiter,
-          marker: marker,
-        },
-        additionalQueryParams,
-        extraHeaders
-      );
-
-      if (objects.length === 0) {
-        isCompleted = true;
-        break;
-      }
-
-      const keys = this.getTopObjectKeys(objects);
-      if (keys === lastKey) {
-        isCompleted = true;
-        break;
-      }
-      lastKey = keys;
-
-      for (const object of objects) {
-        yield object;
-      }
-
-      isCompleted = objects.length < batchSize;
-      marker = objects[objects.length - 1].name;
-    }
   }
 
   async getObjectMeta(objectName: string): Promise<Record<string, string>> {

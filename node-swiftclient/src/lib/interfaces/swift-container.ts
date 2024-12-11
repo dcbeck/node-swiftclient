@@ -32,38 +32,6 @@ export interface SwiftContainer {
   ): Promise<SwiftObject[]>;
 
   /**
-   * Asynchronously iterates over SwiftObjects one at a time, in batches defined by the specified options.
-   * This function fetches objects in chunks and yields each SwiftObject individually,
-   * making it possible to process large datasets extensive memory usage.
-   *
-   * @param {Object} options - Optional Configuration for the iteration.
-   * @param {number} options.batchSize - Optional number of objects to fetch per batch. (default: 1000)
-   * @param {string} options.prefix - Optional prefix for filtering pseudo-folders
-   * @param {Object} [additionalQueryParams] - Optional query parameters to refine the API request.
-   * @param {Object} [extraHeaders] - Optional headers to include in the API request.
-   * @returns {AsyncGenerator<SwiftObject>} An async generator yielding individual SwiftObjects.
-   *
-   * @example
-   * // Example usage:
-   * const options = { batchSize: 1000 };
-   *
-   * const objectIterator = iterateObjects(options);
-   *
-   * for await (const swiftObject of objectIterator) {
-   *   console.log(`Processing object with ID: ${swiftObject.name}`);
-   *   // Perform your processing logic here for each SwiftObject
-   * }
-   */
-  iterateObjects(
-    options?: {
-      batchSize?: number;
-      prefix?: string;
-    },
-    additionalQueryParams?: { [s: string]: string },
-    extraHeaders?: { [s: string]: string }
-  ): AsyncGenerator<SwiftObject>;
-
-  /**
    * Retrieves metadata for a specific object in the container.
    * @param objectName - The name of the object.
    * @returns A promise resolving with the object's metadata as a key-value object.

@@ -130,20 +130,6 @@ describe('Swift version 3 tests', () => {
     ).toBe('docs/dummy.pdf,docs/test.txt');
   });
 
-  it('should iterate over all items', async () => {
-    const options = { batchSize: 500 };
-
-    const objectIterator = container.iterateObjects(options);
-
-    const names: string[] = [];
-
-    for await (const swiftObject of objectIterator) {
-      names.push(swiftObject.name);
-    }
-    names.sort();
-    expect(names.join(',')).toBe('docs/dummy.pdf,docs/test.txt,img/test.jpg,img/test.png,models/teapot.m3d,raw/testBuffer.txt');
-  });
-
   it('should get same object info individual as in list', async () => {
     const testFiles = getTestFiles();
     const jpgFile = testFiles.find((t) => t.fileName.endsWith('jpg'));
