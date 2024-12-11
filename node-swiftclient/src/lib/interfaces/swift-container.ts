@@ -55,8 +55,8 @@ export interface SwiftContainer {
    * }
    */
   iterateObjects(
-    options: {
-      batchSize: number;
+    options?: {
+      batchSize?: number;
       prefix?: string;
     },
     additionalQueryParams?: { [s: string]: string },
