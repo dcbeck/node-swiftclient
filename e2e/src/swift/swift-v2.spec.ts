@@ -1,6 +1,11 @@
 import { SwiftClient, SwiftContainer } from 'node-swiftclient';
 import * as fs from 'fs';
-import { getTestFiles, readImageMetaFromBuffer, readImageMetaFromStreamReader, sortJson } from '../utils/utils';
+import {
+  getTestFiles,
+  readImageMetaFromBuffer,
+  readImageMetaFromStreamReader,
+  sortJson,
+} from '../utils/utils';
 import { expectedUploadedFiles } from './expected-results';
 
 describe('Swift version 2 tests', () => {
@@ -118,6 +123,32 @@ describe('Swift version 2 tests', () => {
         .sort()
         .join(',')
     ).toBe('docs/dummy.pdf,docs/test.txt');
+  });
+
+  it('should list objects after marker', async () => {
+    const objects = await container.listObjects({
+     marker: 'img/test.png'
+    });
+    expect(objects.length).toBe(2);
+    expect(
+      objects
+        .map((i) => i.name)
+        .sort()
+        .join(',')
+    ).toBe('models/teapot.m3d,raw/testBuffer.txt');
+  });
+
+  it('should iterate over all objects in storage in batches', async () => {
+    const objectIterator = container.iterateAllObjects({ batchSize: 2 });
+
+    const names: string[] = [];
+    for await (const object of objectIterator) {
+      names.push(object.name);
+    }
+
+    expect(names.sort().join(',')).toBe(
+      'docs/dummy.pdf,docs/test.txt,img/test.jpg,img/test.png,models/teapot.m3d,raw/testBuffer.txt'
+    );
   });
 
   it('should get same object info individual as in list', async () => {

@@ -142,7 +142,7 @@ export class SwiftClient {
    * @returns A promise resolving with an array of container data.
    */
   async listAllContainers(
-    query?: string | { [s: string]: string },
+    query?: { [s: string]: string },
     extraHeaders?: { [s: string]: string }
   ): Promise<SwiftContainerData[]> {
     const containers = (await this.sw.list(

@@ -36,8 +36,7 @@ export class SwiftCommonContainer
     }
     if (options) {
       if (options.marker) {
-        const paths = options.marker.split('/');
-        queryParams.maker = options.marker;
+        queryParams.marker = options.marker;
       }
       if (options.end_marker) {
         queryParams.end_marker = options.end_marker;
@@ -53,13 +52,12 @@ export class SwiftCommonContainer
         if (options.prefix) {
           queryParams.prefix = this.ensureTrailingSlash(options.prefix);
         }
-        if (!options.marker) {
-          if (options.delimiter) {
-            queryParams.delimiter = options.delimiter;
-          } else {
-            queryParams.delimiter = '/';
-          }
+        if (!options.delimiter) {
+          queryParams.delimiter = '/';
         }
+      }
+      if (options.delimiter) {
+        queryParams.delimiter = options.delimiter;
       }
     }
 
@@ -158,6 +156,44 @@ export class SwiftCommonContainer
       }
     } else {
       await super.delete(objectName);
+    }
+  }
+
+  async *iterateAllObjects(
+    options?: {
+      batchSize?: number;
+    },
+    additionalQueryParams?: { [s: string]: string },
+    extraHeaders?: { [s: string]: string }
+  ): AsyncGenerator<SwiftObject> {
+    const batchSize = options?.batchSize ?? 1000;
+    let marker: string | undefined = undefined;
+    let isCompleted = false;
+    let lastKey = '';
+    while (!isCompleted) {
+      const objects: SwiftObject[] = await this.listObjects(
+        {
+          limit: batchSize,
+          marker: marker,
+        },
+        additionalQueryParams,
+        extraHeaders
+      );
+      if (objects.length === 0) {
+        isCompleted = true;
+        break;
+      }
+      const keys = this.getTopObjectKeys(objects);
+      if (keys === lastKey) {
+        isCompleted = true;
+        break;
+      }
+      lastKey = keys;
+      for (const object of objects) {
+        yield object;
+      }
+      isCompleted = objects.length < batchSize;
+      marker = objects[objects.length - 1].name;
     }
   }
 
@@ -274,4 +310,6 @@ export class SwiftCommonContainer
     const opt = options as any;
     return typeof opt.prefix === 'string' && opt.prefix.trim().length > 0;
   }
+
+
 }

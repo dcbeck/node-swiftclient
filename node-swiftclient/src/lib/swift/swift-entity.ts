@@ -22,12 +22,12 @@ export class SwiftEntity {
   }
 
   public async list(
-    query?: string | { [s: string]: string },
+    query?: { [s: string]: string },
     extraHeaders?: { [s: string]: string }
   ): Promise<SwiftObject[]> {
-    const querystring = query && Object.keys(query).length > 0
-      ? '?' + new URLSearchParams(query).toString()
-      : '';
+    const listQuery = { format: 'json', ...(query ? query : {}) };
+
+    const querystring = '?' + new URLSearchParams(listQuery).toString();
     const auth = await tryAuthentication(this.authenticator);
     const response = await fetch(auth.url + this.urlSuffix + querystring, {
       headers: this.getHeaders(null, extraHeaders, auth.token),
@@ -102,8 +102,8 @@ export class SwiftEntity {
     token: string
   ): Record<string, string> {
     const headers: Record<string, string> = {
-      accept: 'application/json',
       'x-auth-token': token,
+      accept: 'application/json',
       ...extraHeaders,
     };
 
@@ -117,4 +117,6 @@ export class SwiftEntity {
 
     return headers;
   }
+
+
 }
