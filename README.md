@@ -80,30 +80,53 @@ async function example() {
 
 ### **SwiftClient**
 
-| Method                                                           | Description                                                              |
-| ---------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `createContainer(containerName, publicRead, meta, extraHeaders)` | Creates a new container with optional metadata and headers.              |
-| `getContainer(containerName)`                                    | Retrieves a `SwiftContainer` object for managing objects in a container. |
-| `listAllContainers(query?, extraHeaders?)`                       | Lists all containers with optional filters and headers.                  |
-| `deleteContainer(containerName)`                                 | Deletes a container.                                                     |
-| `getClientInfo()`                                                | Retrieves information about the authenticated Swift client.              |
-| `getContainerMeta(containerName)`                                | Retrieves metadata for the specified container.                          |
+| Method                | Description                                                              |
+| --------------------- | ------------------------------------------------------------------------ |
+| `createContainer()`   | Creates a new container with optional metadata and headers.              |
+| `getContainer()`      | Retrieves a `SwiftContainer` object for managing objects in a container. |
+| `listAllContainers()` | Lists all containers with optional filters and headers.                  |
+| `deleteContainer()`   | Deletes a container.                                                     |
+| `getClientInfo()`     | Retrieves information about the authenticated Swift client.              |
+| `getContainerMeta()`  | Retrieves metadata for the specified container.                          |
 
 ---
 
 ### **SwiftContainer**
 
-| Method                                             | Description                                                                                           |
-| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `listObjects(options?)`                            | Lists objects in the container with optional filters (e.g., `prefix`, `limit`).                       |
-| `iterateObjects(options)`                          | Iterate asynchronously over objects in the container with optional filters (e.g., `prefix`, `limit`). |
-| `getObjectMeta(objectName)`                        | Retrieves metadata for a specific object.                                                             |
-| `patchObjectMeta(objectName, meta, extraHeaders?)` | Updates metadata for an object.                                                                       |
-| `putObject(objectName, data, meta, extraHeaders)`  | Uploads an object using a buffer or stream with optional metadata and headers.                        |
-| `deleteObject(objectName, when?)`                  | Deletes an object, optionally scheduling its deletion for a future time.                              |
-| `getObject(objectName)`                            | Retrieves an object as a readable stream.                                                             |
-| `getObjectAsBuffer(objectName)`                    | Retrieves an object as a buffer.                                                                      |
-| `getObjectInfo(objectName)`                        | Retrieves information about an object without downloading it's content                                |
+| Method                | Description                                                                   |
+| --------------------- | ----------------------------------------------------------------------------- |
+| `listObjects()`       | Lists objects in the container with optional filtering and pagination.        |
+| `listObjectFolders()` | Lists object folders (subdirectories) with optional filtering and pagination. |
+| `iterateObjects()`    | Iterates over all objects in the container in batches.                        |
+| `getObjectMeta()`     | Retrieves metadata for a specific object.                                     |
+| `patchObjectMeta()`   | Updates metadata for a specific object.                                       |
+| `putObject()`         | Uploads an object to the container from a stream or buffer.                   |
+| `deleteObject()`      | Deletes a specific object from the container.                                 |
+| `getObject()`         | Downloads a specific object as a readable stream.                             |
+| `getObjectInfo()`     | Retrieves information about an object without downloading its content.        |
+| `getObjectAsBuffer()` | Downloads a specific object as a buffer.                                      |
+
+#### Example Usage
+
+```typescript
+import { SwiftContainer } from './swift-container';
+
+async function main(container: SwiftContainer) {
+  // List objects in the container
+  const objects = await container.listObjects({ prefix: 'folder/' });
+  console.log('Objects:', objects);
+
+  // Upload an object
+  await container.putObject('example.txt', Buffer.from('Hello, world!'));
+
+  // Retrieve metadata for an object
+  const metadata = await container.getObjectMeta('example.txt');
+  console.log('Metadata:', metadata);
+
+  // Delete an object
+  await container.deleteObject('example.txt');
+}
+```
 
 ---
 
