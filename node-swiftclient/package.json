@@ -1,7 +1,7 @@
 {
   "name": "node-swiftclient",
   "description": "A Node.js client library for interacting with OpenStack Swift Object Storage",
-  "version": "1.1.8",
+  "version": "1.2.0",
   "author": "Daniel Beck (https://github.com/dcbeck)",
   "license": "MIT",
   "repository": {
