@@ -66,7 +66,7 @@ function run() {
   rimraf.sync('dist/node-swiftclient/index.esm.d.ts');
   console.log('Removed unpacked type definitions');
 
-  
+  /* 
   minifyFile(
     'dist/node-swiftclient/index.cjs.js',
     'dist/node-swiftclient/index.cjs.js'
@@ -76,7 +76,7 @@ function run() {
     'dist/node-swiftclient/index.esm.js',
     'dist/node-swiftclient/index.esm.js'
   );
-
+  */
 
   replaceTextInFile('dist/node-swiftclient/index.d.ts', 'export { }', '');
 
