@@ -1,4 +1,5 @@
 import { Authenticator } from '../interfaces';
+import { fetchWithTimeout } from '../utils/fetch-with-timeout';
 
 const AUTH_STATUS = {
   UNAUTHENTICATED: 0,
@@ -24,7 +25,7 @@ export class SwiftAuthenticatorV1 implements Authenticator {
 
   private async runAuth() {
     try {
-      const res = await fetch(this.authUrl, {
+      const res = await fetchWithTimeout(this.authUrl, {
         headers: {
           'x-auth-user':
             this.tenant === null

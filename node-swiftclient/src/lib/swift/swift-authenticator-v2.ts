@@ -1,4 +1,5 @@
 import { Authenticator, AuthResult } from '../interfaces';
+import { fetchWithTimeout } from '../utils/fetch-with-timeout';
 
 type EndpointType = 'public' | 'internal' | 'admin';
 
@@ -118,7 +119,7 @@ class V2Auth {
     if (!url.endsWith('/')) url += '/';
     url += 'tokens';
 
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

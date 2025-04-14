@@ -4,6 +4,7 @@ import {
   getServerDateTimeOffset,
   parseDateWithServerTimezone,
 } from '../utils/date-utils';
+import { fetchWithTimeout } from '../utils/fetch-with-timeout';
 import { tryAuthentication } from './swift-auth';
 
 export class SwiftEntity {
@@ -29,7 +30,7 @@ export class SwiftEntity {
 
     const querystring = '?' + new URLSearchParams(listQuery).toString();
     const auth = await tryAuthentication(this.authenticator);
-    const response = await fetch(auth.url + this.urlSuffix + querystring, {
+    const response = await fetchWithTimeout(auth.url + this.urlSuffix + querystring, {
       headers: this.getHeaders(null, extraHeaders, auth.token),
     });
     if (!response.ok)
@@ -55,7 +56,7 @@ export class SwiftEntity {
     extraHeaders: Record<string, string> | null
   ): Promise<void> {
     const auth = await tryAuthentication(this.authenticator);
-    const response = await fetch(`${auth.url + this.urlSuffix}/${name}`, {
+    const response = await fetchWithTimeout(`${auth.url + this.urlSuffix}/${name}`, {
       method: 'POST',
       headers: this.getHeaders(meta, extraHeaders, auth.token),
     });
@@ -66,7 +67,7 @@ export class SwiftEntity {
 
   public async getMeta(name: string): Promise<Record<string, string>> {
     const auth = await tryAuthentication(this.authenticator);
-    const response = await fetch(`${auth.url + this.urlSuffix}/${name}`, {
+    const response = await fetchWithTimeout(`${auth.url + this.urlSuffix}/${name}`, {
       method: 'HEAD',
       headers: this.getHeaders(null, null, auth.token),
     });
@@ -88,7 +89,7 @@ export class SwiftEntity {
 
   public async delete(name: string): Promise<void> {
     const auth = await tryAuthentication(this.authenticator);
-    const response = await fetch(`${auth.url + this.urlSuffix}/${name}`, {
+    const response = await fetchWithTimeout(`${auth.url + this.urlSuffix}/${name}`, {
       method: 'DELETE',
       headers: this.getHeaders(null, null, auth.token),
     });

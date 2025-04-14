@@ -1,5 +1,6 @@
 import { AuthResult } from '../interfaces/auth-result';
 import { Authenticator } from '../interfaces/authenticator';
+import { fetchWithTimeout } from '../utils/fetch-with-timeout';
 
 const V3_AUTH_METHODS = {
   TOKEN: 'token',
@@ -159,7 +160,7 @@ export class SwiftAuthenticatorV3 implements Authenticator {
     const authRequest = this.buildAuthRequest();
 
     try {
-      const response = await fetch(this.buildAuthUrl(), {
+      const response = await fetchWithTimeout(this.buildAuthUrl(), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

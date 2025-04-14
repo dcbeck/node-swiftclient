@@ -4,6 +4,7 @@ import { SwiftContainerData } from '../interfaces/swift-container-data';
 import { SwiftContainer } from '../interfaces';
 import { getAuthenticatorForVersion } from './swift-utils';
 import { tryAuthentication } from './swift-auth';
+import { fetchWithTimeout } from '../utils/fetch-with-timeout';
 
 export type SwiftConnection = {
   authUrl: string;
@@ -89,7 +90,7 @@ export class SwiftClient {
       ),
     });
 
-    const response = await fetch(req);
+    const response = await fetchWithTimeout(req);
 
     if (response.status < 200 || response.status >= 300) {
       throw new Error(`HTTP ${response.status}`);
@@ -103,7 +104,7 @@ export class SwiftClient {
   async getClientInfo() {
     const auth = await tryAuthentication(this.sw.authenticator);
     const infoUrl = new URL(auth.url).origin + '/info';
-    const response = await fetch(infoUrl, {
+    const response = await fetchWithTimeout(infoUrl, {
       method: 'GET',
       headers: {
         'x-auth-token': auth.token,

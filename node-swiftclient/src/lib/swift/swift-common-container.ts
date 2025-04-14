@@ -9,6 +9,7 @@ import {
 } from '../utils/date-utils';
 import { tryAuthentication } from './swift-auth';
 import { SwiftSubDir } from '../interfaces/swift-sub-dir';
+import { fetchWithTimeout } from '../utils/fetch-with-timeout';
 
 const invalidListConfigErr =
   'Invalid filter configuration: The "delimiter" option cannot be used without specifying a "prefix". ' +
@@ -265,7 +266,7 @@ export class SwiftCommonContainer
       ...duplex,
     });
 
-    const response = await fetch(req);
+    const response = await fetchWithTimeout(req);
 
     if (response.status < 200 || response.status >= 300) {
       throw new Error(`HTTP ${response.status}`);
@@ -286,7 +287,7 @@ export class SwiftCommonContainer
         );
       }
       const auth = await tryAuthentication(this.authenticator);
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${auth.url + this.urlSuffix}/${objectName}`,
         {
           method: 'POST',
@@ -308,12 +309,12 @@ export class SwiftCommonContainer
     objectName: string
   ): Promise<ReadableStreamDefaultReader<Uint8Array>> {
     const auth = await tryAuthentication(this.authenticator);
-    const response = await fetch(`${auth.url + this.urlSuffix}/${objectName}`, {
+    const response = await fetchWithTimeout(`${auth.url + this.urlSuffix}/${objectName}`, {
       method: 'GET',
       headers: {
         'x-auth-token': auth.token,
       },
-    });
+    }, 10000);
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
@@ -328,7 +329,7 @@ export class SwiftCommonContainer
 
   async getObjectAsBuffer(objectName: string): Promise<Buffer> {
     const auth = await tryAuthentication(this.authenticator);
-    const response = await fetch(`${auth.url + this.urlSuffix}/${objectName}`, {
+    const response = await fetchWithTimeout(`${auth.url + this.urlSuffix}/${objectName}`, {
       method: 'GET',
       headers: {
         'x-auth-token': auth.token,
@@ -350,7 +351,7 @@ export class SwiftCommonContainer
 
   async getObjectInfo(objectName: string): Promise<SwiftObjectData> {
     const auth = await tryAuthentication(this.authenticator);
-    const response = await fetch(`${auth.url + this.urlSuffix}/${objectName}`, {
+    const response = await fetchWithTimeout(`${auth.url + this.urlSuffix}/${objectName}`, {
       method: 'HEAD',
       headers: {
         'x-auth-token': auth.token,
