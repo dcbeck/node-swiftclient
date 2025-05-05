@@ -266,7 +266,7 @@ export class SwiftCommonContainer
       ...duplex,
     });
 
-    const response = await fetchWithTimeout(req);
+    const response = await fetch(req);
 
     if (response.status < 200 || response.status >= 300) {
       throw new Error(`HTTP ${response.status}`);
@@ -309,12 +309,12 @@ export class SwiftCommonContainer
     objectName: string
   ): Promise<ReadableStreamDefaultReader<Uint8Array>> {
     const auth = await tryAuthentication(this.authenticator);
-    const response = await fetchWithTimeout(`${auth.url + this.urlSuffix}/${objectName}`, {
+    const response = await fetch(`${auth.url + this.urlSuffix}/${objectName}`, {
       method: 'GET',
       headers: {
         'x-auth-token': auth.token,
       },
-    }, 10000);
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
@@ -329,7 +329,7 @@ export class SwiftCommonContainer
 
   async getObjectAsBuffer(objectName: string): Promise<Buffer> {
     const auth = await tryAuthentication(this.authenticator);
-    const response = await fetchWithTimeout(`${auth.url + this.urlSuffix}/${objectName}`, {
+    const response = await fetch(`${auth.url + this.urlSuffix}/${objectName}`, {
       method: 'GET',
       headers: {
         'x-auth-token': auth.token,
