@@ -2,13 +2,13 @@
  * Fetch with a timeout using native fetch and AbortController
  * @param url - URL to fetch
  * @param options - Fetch options
- * @param timeout - Timeout in milliseconds (default: 5000ms)
+ * @param timeout - Timeout in milliseconds (default: 15000ms)
  * @returns A Promise that resolves with the Response or rejects on timeout/error
  */
 export async function fetchWithTimeout(
   url: string | RequestInfo,
   options: RequestInit = {},
-  timeout = 5000
+  timeout = 15000
 ): Promise<Response> {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);

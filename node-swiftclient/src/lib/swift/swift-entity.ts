@@ -89,7 +89,7 @@ export class SwiftEntity {
 
   public async delete(name: string): Promise<void> {
     const auth = await tryAuthentication(this.authenticator);
-    const response = await fetchWithTimeout(`${auth.url + this.urlSuffix}/${name}`, {
+    const response = await fetch(`${auth.url + this.urlSuffix}/${name}`, {
       method: 'DELETE',
       headers: this.getHeaders(null, null, auth.token),
     });

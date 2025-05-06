@@ -287,7 +287,7 @@ export class SwiftCommonContainer
         );
       }
       const auth = await tryAuthentication(this.authenticator);
-      const response = await fetchWithTimeout(
+      const response = await fetch(
         `${auth.url + this.urlSuffix}/${objectName}`,
         {
           method: 'POST',
